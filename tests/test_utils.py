@@ -48,7 +48,7 @@ class TestUtils(unittest.TestCase):
         tests = [
             [500, 41],  # min
             [2222, 72],
-            [5000, 121]  # max
+            [5000, 122]  # max
         ]
         for test in tests:
             fahrenheit = util.nuheat_to_fahrenheit(test[0])
@@ -58,7 +58,7 @@ class TestUtils(unittest.TestCase):
         tests = [
             [500, 5],  # min
             [2222, 22],
-            [5000, 49]  # max
+            [5000, 50]  # max
         ]
         for test in tests:
             celsius = util.nuheat_to_celsius(test[0])
