@@ -1,0 +1,8 @@
+{
+    "SessionId": "test-session-id",
+    "NewAccount": false,
+    "ErrorCode": 0,
+    "RoleType": 3000,
+    "Email": "test@example.com",
+    "Language": "EN"
+}
