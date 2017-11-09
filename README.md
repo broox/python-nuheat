@@ -1,5 +1,7 @@
 # Python NuHeat
 
+[![PyPi](image:: https://badge.fury.io/py/nuheat.svg)](https://badge.fury.io/py/nuheat)
+
 A Python library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
 
 * This uses the web-based NuHeat API, so it requires an external internet connection
