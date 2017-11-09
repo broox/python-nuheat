@@ -8,7 +8,7 @@ setup(
   author = 'Derek Brooks',
   author_email = 'derek@broox.com',
   url = 'https://github.com/broox/python-nuheat',
-  license = 'MIT'
+  license = 'MIT',
   keywords = ['nuheat', 'thermostat', 'home automation', 'python'],
   classifiers = [],
 )
