@@ -1,5 +1,5 @@
-import config
-from .util import (
+import nuheat.config as config
+from nuheat.util import (
     celsius_to_nuheat,
     fahrenheit_to_nuheat,
     nuheat_to_celsius,

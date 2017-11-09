@@ -1,6 +1,6 @@
 import requests
-from . import config
-from .thermostat import NuHeatThermostat
+import nuheat.config as config
+from nuheat.thermostat import NuHeatThermostat
 
 
 class NuHeat(object):
