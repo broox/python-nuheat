@@ -40,6 +40,8 @@ class NuHeatThermostat(object):
         """
         Return the current temperature in Fahrenheit
         """
+        if not self.temperature:
+            return None
         return nuheat_to_fahrenheit(self.temperature)
 
     @property
@@ -47,6 +49,8 @@ class NuHeatThermostat(object):
         """
         Return the current temperature in Celsius
         """
+        if not self.temperature:
+            return None
         return nuheat_to_celsius(self.temperature)
 
     @property
@@ -54,6 +58,8 @@ class NuHeatThermostat(object):
         """
         Return the current target temperature in Fahrenheit
         """
+        if not self.target_temperature:
+            return None
         return nuheat_to_fahrenheit(self.target_temperature)
 
     @property
@@ -61,6 +67,8 @@ class NuHeatThermostat(object):
         """
         Return the current target temperature in Celsius
         """
+        if not self.target_temperature:
+            return None
         return nuheat_to_celsius(self.target_temperature)
 
 

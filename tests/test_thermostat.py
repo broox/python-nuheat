@@ -17,6 +17,40 @@ class TestThermostat(NuTestCase):
         self.assertEqual(thermostat._session, api)
 
     @patch("nuheat.NuHeatThermostat.get_data")
+    def test_repr_without_data(self, _):
+        api = NuHeat(None, None)
+        serial_number = "serial-123"
+        thermostat = NuHeatThermostat(api, serial_number)
+        self.assertEqual(
+            str(thermostat),
+            "<NuHeatThermostat id='{}' temperature='{}F / {}C' target='{}F / {}C'>".format(
+                serial_number,
+                None,
+                None,
+                None,
+                None
+            )
+        )
+
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_repr_with_data(self, _):
+        api = NuHeat(None, None)
+        serial_number = "serial-123"
+        thermostat = NuHeatThermostat(api, serial_number)
+        thermostat.temperature = 2000
+        thermostat.target_temperature = 5000
+        self.assertEqual(
+            str(thermostat),
+            "<NuHeatThermostat id='{}' temperature='{}F / {}C' target='{}F / {}C'>".format(
+                serial_number,
+                68,
+                20,
+                122,
+                50
+            )
+        )
+
+    @patch("nuheat.NuHeatThermostat.get_data")
     def test_fahrenheit(self, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.temperature = 2222

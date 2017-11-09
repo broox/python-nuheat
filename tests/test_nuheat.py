@@ -11,6 +11,12 @@ class TestNuHeat(NuTestCase):
         existing_session_id = "passed-session"
         api = NuHeat("test@example.com", "secure-password", existing_session_id)
         self.assertEqual(api.session_id, existing_session_id)
+        api.authenticate()
+
+    def test_repr(self):
+        email = "test@example.com"
+        api = NuHeat(email, "secure-password")
+        self.assertEqual(str(api), "<NuHeat username='{}'>".format(email))
 
     @responses.activate
     def test_successful_authentication(self):
