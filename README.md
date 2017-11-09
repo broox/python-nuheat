@@ -1,9 +1,7 @@
 # Python NuHeat
 
 [![PyPi](https://badge.fury.io/py/nuheat.svg)](https://badge.fury.io/py/nuheat)
-
 [![Travis](https://travis-ci.org/broox/python-nuheat.svg?branch=master)](https://travis-ci.org/broox/python-nuheat)
-
 [![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master)](https://coveralls.io/github/broox/python-nuheat?branch=master)
 
 A Python library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
