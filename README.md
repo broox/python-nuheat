@@ -17,7 +17,7 @@ api.authenticate()
 
 # Fetch a thermostat by serial number / ID. This can be found on the NuHeat website by selecting
 # your thermostat and noting the Thermostat ID
-api.get_thermostat("12345")
+thermostat = api.get_thermostat("12345")
 
 # Print the current temperature of the thermostat
 thermostat.fahrenheit
