@@ -1,10 +1,9 @@
 import json
 import responses
-import urllib
 
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import NuTestCase
+from . import NuTestCase, urlencode
 
 class TestNuHeat(NuTestCase):
 
@@ -70,7 +69,7 @@ class TestNuHeat(NuTestCase):
         response = api.request(url, method="GET", params=params)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request.url, "{}?{}".format(url, urllib.urlencode(params)))
+        self.assertEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         request_headers = response.request.headers
         self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
         self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
@@ -90,8 +89,8 @@ class TestNuHeat(NuTestCase):
         response = api.request(url, method="POST", data=data, params=params)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request.url, "{}?{}".format(url, urllib.urlencode(params)))
-        self.assertEqual(response.request.body, urllib.urlencode(data))
+        self.assertEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
+        self.assertEqual(response.request.body, urlencode(data))
         request_headers = response.request.headers
         self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
         self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])

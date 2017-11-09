@@ -1,10 +1,9 @@
 import json
 import responses
-import urllib
 
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import NuTestCase
+from . import NuTestCase, urlencode
 
 
 class TestThermostat(NuTestCase):
@@ -72,7 +71,7 @@ class TestThermostat(NuTestCase):
             "sessionid": api.session_id,
             "serialnumber": serial_number
         }
-        request_url = "{}?{}".format(config.THERMOSTAT_URL, urllib.urlencode(params))
+        request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
 
         thermostat = NuHeatThermostat(api, serial_number)
         thermostat.get_data()
@@ -129,7 +128,7 @@ class TestThermostat(NuTestCase):
             "sessionid": api.session_id,
             "serialnumber": serial_number
         }
-        request_url = "{}?{}".format(config.THERMOSTAT_URL, urllib.urlencode(params))
+        request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
         post_data = {"test": "data"}
         thermostat = NuHeatThermostat(api, serial_number)
         thermostat.set_data(post_data)
@@ -137,4 +136,4 @@ class TestThermostat(NuTestCase):
         api_call = responses.calls[0]
         self.assertEqual(api_call.request.method, "POST")
         self.assertEqual(api_call.request.url, request_url)
-        self.assertEqual(api_call.request.body, urllib.urlencode(post_data))
+        self.assertEqual(api_call.request.body, urlencode(post_data))
