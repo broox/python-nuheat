@@ -1,13 +1,11 @@
 import json
-import unittest
-
 import responses
 
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import load_fixture, urlencode
+from . import NuTestCase, load_fixture, urlencode
 
-class TestNuHeat(unittest.TestCase):
+class TestNuHeat(NuTestCase):
     # pylint: disable=protected-access
 
     def test_init_with_session(self):
@@ -78,7 +76,7 @@ class TestNuHeat(unittest.TestCase):
         response = api.request(url, method="GET", params=params)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
+        self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         request_headers = response.request.headers
         self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
         self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
@@ -98,7 +96,7 @@ class TestNuHeat(unittest.TestCase):
         response = api.request(url, method="POST", data=data, params=params)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
+        self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         self.assertEqual(response.request.body, urlencode(data))
         request_headers = response.request.headers
         self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
