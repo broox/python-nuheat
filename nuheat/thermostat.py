@@ -16,6 +16,8 @@ class NuHeatThermostat(object):
     room = None
     serial_number = None
     temperature = None
+    min_temperature = None
+    max_temperature = None
     target_temperature = None
 
     def __init__(self, nuheat_session, serial_number):
@@ -52,6 +54,42 @@ class NuHeatThermostat(object):
         if not self.temperature:
             return None
         return nuheat_to_celsius(self.temperature)
+
+    @property
+    def min_fahrenheit(self):
+        """
+        Return the thermostat's minimum temperature in Fahrenheit
+        """
+        if not self.min_temperature:
+            return None
+        return nuheat_to_fahrenheit(self.min_temperature)
+
+    @property
+    def min_celsius(self):
+        """
+        Return the thermostat's minimum temperature in Celsius
+        """
+        if not self.min_temperature:
+            return None
+        return nuheat_to_celsius(self.min_temperature)
+
+    @property
+    def max_fahrenheit(self):
+        """
+        Return the thermostat's maximum temperature in Fahrenheit
+        """
+        if not self.max_temperature:
+            return None
+        return nuheat_to_fahrenheit(self.max_temperature)
+
+    @property
+    def max_celsius(self):
+        """
+        Return the thermostat's maximum temperature in Celsius
+        """
+        if not self.max_temperature:
+            return None
+        return nuheat_to_celsius(self.max_temperature)
 
     @property
     def target_fahrenheit(self):
@@ -98,7 +136,6 @@ class NuHeatThermostat(object):
         Fetch/refresh the current instance's data from the NuHeat API
         """
         params = {
-            "sessionid": self._session.session_id,
             "serialnumber": self.serial_number
         }
         data = self._session.request(config.THERMOSTAT_URL, params=params)
@@ -110,7 +147,10 @@ class NuHeatThermostat(object):
         self.room = data.get("Room")
         self.serial_number = data.get("SerialNumber")
         self.temperature = data.get("Temperature")
+        self.min_temperature = data.get("MinTemp")
+        self.max_temperature = data.get("MaxTemp")
         self.target_temperature = data.get("SetPointTemp")
+        self.schedule_mode = data.get("ScheduleMode")
 
     def resume_schedule(self):
         """
@@ -126,6 +166,12 @@ class NuHeatThermostat(object):
         :param permanent: Permanently hold the temperature. If set to False, the schedule will
                           resume at the next programmed event
         """
+        if temperature < self.min_temperature:
+            temperature = self.min_temperature
+
+        if temperature > self.max_temperature:
+            temperature = self.max_temperature
+
         if permanent:
             mode = config.SCHEDULE_HOLD
         else:
@@ -140,7 +186,6 @@ class NuHeatThermostat(object):
         Update (patch) the current instance's data on the NuHeat API
         """
         params = {
-            "sessionid": self._session.session_id,
             "serialnumber": self.serial_number
         }
         self._session.request(config.THERMOSTAT_URL, method="POST", data=post_data, params=params)

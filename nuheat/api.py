@@ -1,6 +1,10 @@
+import logging
 import requests
 import nuheat.config as config
 from nuheat.thermostat import NuHeatThermostat
+
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
 
 
 class NuHeat(object):
@@ -15,7 +19,7 @@ class NuHeat(object):
         """
         self.username = username
         self.password = password
-        self.session_id = session_id
+        self._session_id = session_id
 
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
@@ -24,9 +28,11 @@ class NuHeat(object):
         """
         Authenticate against the NuHeat API
         """
-        if self.session_id:
+        if self._session_id:
+            _LOGGER.debug("Using existing NuHeat session")
             return
 
+        _LOGGER.debug("Creating NuHeat session")
         post_data = {
             "Email": self.username,
             "Password": self.password,
@@ -37,7 +43,7 @@ class NuHeat(object):
         if not session_id:
             raise Exception("Authentication error")
 
-        self.session_id = session_id
+        self._session_id = session_id
 
     def get_thermostat(self, serial_number):
         """
@@ -47,7 +53,7 @@ class NuHeat(object):
         """
         return NuHeatThermostat(self, serial_number)
 
-    def request(self, url, method="GET", data=None, params=None):
+    def request(self, url, method="GET", data=None, params=None, retry=True):
         """
         Make a request to the NuHeat API
 
@@ -55,13 +61,24 @@ class NuHeat(object):
         :param method: The type of request to make (GET, POST)
         :param data: Data to be sent along with POST requests
         :param params: Querystring parameters
+        :param retry: Attempt to re-authenticate and retry request if necessary
         """
         headers = config.REQUEST_HEADERS
+
+        if params and self._session_id:
+            params['sessionid'] = self._session_id
 
         if method == "GET":
             response = requests.get(url, headers=headers, params=params)
         elif method == "POST":
             response = requests.post(url, headers=headers, params=params, data=data)
+
+        # Handle expired sessions
+        if response.status_code == 401 and retry:
+            _LOGGER.warn("NuHeat APIrequest unauthorized [401]. Try to re-authenticate.")
+            self._session_id = None
+            self.authenticate()
+            return self.request(url, method=method, data=data, params=params, retry=False)
 
         response.raise_for_status()
         try:

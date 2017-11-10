@@ -10,7 +10,7 @@ class TestNuHeat(NuTestCase):
     def test_init_with_session(self):
         existing_session_id = "passed-session"
         api = NuHeat("test@example.com", "secure-password", existing_session_id)
-        self.assertEqual(api.session_id, existing_session_id)
+        self.assertEqual(api._session_id, existing_session_id)
         api.authenticate()
 
     def test_repr(self):
@@ -30,9 +30,9 @@ class TestNuHeat(NuTestCase):
         )
 
         api = NuHeat("test@example.com", "secure-password")
-        self.assertIsNone(api.session_id)
+        self.assertIsNone(api._session_id)
         api.authenticate()
-        self.assertEqual(api.session_id, response_data.get("SessionId"))
+        self.assertEqual(api._session_id, response_data.get("SessionId"))
 
     @responses.activate
     def test_authentication_error(self):
@@ -48,7 +48,7 @@ class TestNuHeat(NuTestCase):
         api = NuHeat("test@example.com", "secure-password")
         with self.assertRaises(Exception) as _:
             api.authenticate()
-            self.assertIsNone(api.session_id)
+            self.assertIsNone(api._session_id)
 
     def test_authentication_failure(self):
         # TODO: 401, expired session
