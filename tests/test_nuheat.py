@@ -1,11 +1,14 @@
 import json
+import unittest
+
 import responses
 
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import NuTestCase, urlencode
+from . import load_fixture, urlencode
 
-class TestNuHeat(NuTestCase):
+class TestNuHeat(unittest.TestCase):
+    # pylint: disable=protected-access
 
     def test_init_with_session(self):
         existing_session_id = "passed-session"
@@ -20,7 +23,7 @@ class TestNuHeat(NuTestCase):
 
     @responses.activate
     def test_successful_authentication(self):
-        response_data = self.load_fixture("auth_success.json")
+        response_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
             config.AUTH_URL,
@@ -36,7 +39,7 @@ class TestNuHeat(NuTestCase):
 
     @responses.activate
     def test_authentication_error(self):
-        response_data = self.load_fixture("auth_error.json")
+        response_data = load_fixture("auth_error.json")
         responses.add(
             responses.POST,
             config.AUTH_URL,

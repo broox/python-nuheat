@@ -1,12 +1,16 @@
 import json
+import unittest
+
 import responses
 
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import NuTestCase, urlencode
+from . import load_fixture, urlencode
 
 
-class TestThermostat(NuTestCase):
+class TestThermostat(unittest.TestCase):
+    # pylint: disable=protected-access
+    # pylint: disable=no-self-use
 
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_init(self, _):
@@ -118,7 +122,7 @@ class TestThermostat(NuTestCase):
 
     @responses.activate
     def test_get_data(self):
-        response_data = self.load_fixture("thermostat.json")
+        response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
             config.THERMOSTAT_URL,
@@ -139,8 +143,6 @@ class TestThermostat(NuTestCase):
         thermostat.get_data()
 
         api_calls = responses.calls
-        for api_call in api_calls:
-            print "{} {}".format(api_call.request.method, api_call.request.url)
 
         # Data is fetched once on instantiation and once on get_data()
         self.assertEqual(len(api_calls), 2)
@@ -163,7 +165,7 @@ class TestThermostat(NuTestCase):
     @responses.activate
     def test_get_data_401(self):
         # First request (when initializing the thermostat) is successful
-        response_data = self.load_fixture("thermostat.json")
+        response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
             config.THERMOSTAT_URL,
@@ -180,7 +182,7 @@ class TestThermostat(NuTestCase):
         )
 
         # Attempt to reauthenticate
-        auth_data = self.load_fixture("auth_success.json")
+        auth_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
             config.AUTH_URL,
@@ -211,7 +213,7 @@ class TestThermostat(NuTestCase):
         self.assertEqual(len(api_calls), 4)
 
         unauthorized_attempt = api_calls[1]
-        params = { "sessionid": bad_session_id, "serialnumber": serial_number }
+        params = {"sessionid": bad_session_id, "serialnumber": serial_number}
         request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
         self.assertEqual(unauthorized_attempt.request.method, "GET")
         self.assertEqual(unauthorized_attempt.request.url, request_url)
@@ -222,7 +224,7 @@ class TestThermostat(NuTestCase):
         self.assertEqual(auth_call.request.url, config.AUTH_URL)
 
         second_attempt = api_calls[3]
-        params["sessionid"] = auth_data.get("SessionId")
+        params["sessionid"] = good_session_id
         request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
         self.assertEqual(second_attempt.request.method, "GET")
         self.assertEqual(second_attempt.request.url, request_url)
