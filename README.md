@@ -11,6 +11,12 @@ A Python 2/Python 3 library that allows control of connected [NuHeat Signature](
 * The API in use is not an officially published API, so it could change without notice
 * Please contribute!
 
+# Installation
+
+```
+$ pip install nuheat
+```
+
 # Usage
 
 ```
