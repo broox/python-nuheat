@@ -105,18 +105,18 @@ class TestThermostat(NuTestCase):
         self.assertEqual(thermostat.target_celsius, 22)
 
     @patch("nuheat.NuHeatThermostat.get_data")
-    @patch("nuheat.NuHeatThermostat.set_target_temperature")
-    def test_target_fahrenheit_setter(self, set_target_temperature, _):
+    @patch("nuheat.NuHeatThermostat.set_target_fahrenheit")
+    def test_target_fahrenheit_setter(self, set_target_fahrenheit, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.target_fahrenheit = 80
-        set_target_temperature.assert_called_with(2665, permanent=True)
+        set_target_fahrenheit.assert_called_with(80)
 
     @patch("nuheat.NuHeatThermostat.get_data")
-    @patch("nuheat.NuHeatThermostat.set_target_temperature")
-    def test_target_celsius_setter(self, set_target_temperature, _):
+    @patch("nuheat.NuHeatThermostat.set_target_celsius")
+    def test_target_celsius_setter(self, set_target_celsius, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.target_celsius = 26
-        set_target_temperature.assert_called_with(2609, permanent=True)
+        set_target_celsius.assert_called_with(26)
 
     @responses.activate
     def test_get_data(self):
@@ -228,11 +228,50 @@ class TestThermostat(NuTestCase):
         self.assertEqual(second_attempt.response.status_code, 200)
 
     @patch("nuheat.NuHeatThermostat.get_data")
+    def test_schedule_mode(self, _):
+        thermostat = NuHeatThermostat(None, None)
+        thermostat._schedule_mode = 1
+        self.assertEqual(thermostat.schedule_mode, 1)
+
+    @patch("nuheat.NuHeatThermostat.get_data")
     @patch("nuheat.NuHeatThermostat.set_data")
-    def test_response_schedule(self, set_data, _):
+    def test_schedule_mode_setter(self, set_data, _):
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.schedule_mode = 2
+        set_data.assert_called_with({"ScheduleMode": 2})
+
+        # Invalid mode
+        with self.assertRaises(Exception) as _:
+            thermostat.schedule_mode = 5
+
+    @patch("nuheat.NuHeatThermostat.get_data")
+    @patch("nuheat.NuHeatThermostat.set_data")
+    def test_resume_schedule(self, set_data, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.resume_schedule()
         set_data.assert_called_with({"ScheduleMode": config.SCHEDULE_RUN})
+
+    @patch("nuheat.NuHeatThermostat.get_data")
+    @patch("nuheat.NuHeatThermostat.set_target_temperature")
+    def test_set_target_fahrenheit(self, set_target_temperature, _):
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.set_target_fahrenheit(80)
+        set_target_temperature.assert_called_with(2665, config.SCHEDULE_HOLD)
+
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.set_target_fahrenheit(80, config.SCHEDULE_TEMPORARY_HOLD)
+        set_target_temperature.assert_called_with(2665, config.SCHEDULE_TEMPORARY_HOLD)
+
+    @patch("nuheat.NuHeatThermostat.get_data")
+    @patch("nuheat.NuHeatThermostat.set_target_temperature")
+    def test_set_target_celsius(self, set_target_temperature, _):
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.set_target_celsius(26)
+        set_target_temperature.assert_called_with(2609, config.SCHEDULE_HOLD)
+
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.set_target_celsius(26, config.SCHEDULE_TEMPORARY_HOLD)
+        set_target_temperature.assert_called_with(2609, config.SCHEDULE_TEMPORARY_HOLD)
 
     @patch("nuheat.NuHeatThermostat.get_data")
     @patch("nuheat.NuHeatThermostat.set_data")
@@ -249,7 +288,7 @@ class TestThermostat(NuTestCase):
         })
 
         # Temporary hold
-        thermostat.set_target_temperature(2222, permanent=False)
+        thermostat.set_target_temperature(2222, mode=config.SCHEDULE_TEMPORARY_HOLD)
         set_data.assert_called_with({
             "SetPointTemp": 2222,
             "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD
@@ -268,6 +307,10 @@ class TestThermostat(NuTestCase):
             "SetPointTemp": 7000,
             "ScheduleMode": config.SCHEDULE_HOLD
         })
+
+        # Invalid mode
+        with self.assertRaises(Exception) as _:
+            thermostat.set_target_temperature(2222, 5)
 
     @responses.activate
     @patch("nuheat.NuHeatThermostat.get_data")
