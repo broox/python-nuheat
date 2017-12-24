@@ -10,6 +10,7 @@ from nuheat.util import (
 class NuHeatThermostat(object):
     _session = None
     _data = None
+    _schedule_mode = None
 
     heating = False
     online = False
@@ -113,23 +114,21 @@ class NuHeatThermostat(object):
     @target_fahrenheit.setter
     def target_fahrenheit(self, fahrenheit):
         """
-        Set the target temperature to the desired fahrenheit
+        Helper to set and HOLD the target temperature to the desired fahrenheit
 
         :param fahrenheit: The desired temperature in F
         """
-        temperature = fahrenheit_to_nuheat(fahrenheit)
-        self.set_target_temperature(temperature, permanent=True)
+        self.set_target_fahrenheit(fahrenheit)
 
     @target_celsius.setter
     def target_celsius(self, celsius):
         """
-        Set the target temperature to the desired fahrenheit
+        Helper to set and HOLD the target temperature to the desired fahrenheit
 
         :param celsius: The desired temperature in C
         """
         # Note: headers are diff
-        temperature = celsius_to_nuheat(celsius)
-        self.set_target_temperature(temperature, permanent=True)
+        self.set_target_celsius(celsius)
 
     def get_data(self):
         """
@@ -150,15 +149,60 @@ class NuHeatThermostat(object):
         self.min_temperature = data.get("MinTemp")
         self.max_temperature = data.get("MaxTemp")
         self.target_temperature = data.get("SetPointTemp")
-        self.schedule_mode = data.get("ScheduleMode")
+        self._schedule_mode = data.get("ScheduleMode")
+
+    @property
+    def schedule_mode(self):
+        """
+        Return the mode that the thermostat is currently using
+        """
+        return self._schedule_mode
+
+    @schedule_mode.setter
+    def schedule_mode(self, mode):
+        """
+        Set the thermostat mode
+
+        :param mode: The desired mode integer value.
+                     Auto = 1
+                     Temporary hold = 2
+                     Permanent hold = 3
+        """
+        modes = [config.SCHEDULE_RUN, config.SCHEDULE_TEMPORARY_HOLD, config.SCHEDULE_HOLD]
+        if mode not in modes:
+            raise Exception("Invalid mode. Please use one of: {}".format(modes))
+
+        self.set_data({"ScheduleMode": mode})
 
     def resume_schedule(self):
         """
-        Tell NuHeat to resume its programmed schedule
+        A convenience method to tell NuHeat to resume its programmed schedule
         """
-        self.set_data({"ScheduleMode": config.SCHEDULE_RUN})
+        self.schedule_mode = config.SCHEDULE_RUN
 
-    def set_target_temperature(self, temperature, permanent=True):
+    def set_target_fahrenheit(self, fahrenheit, mode=config.SCHEDULE_HOLD):
+        """
+        Set the target temperature to the desired fahrenheit, with more granular control of the
+        hold mode
+
+        :param fahrenheit: The desired temperature in F
+        :param mode: The desired mode to operate in
+        """
+        temperature = fahrenheit_to_nuheat(fahrenheit)
+        self.set_target_temperature(temperature, mode)
+
+    def set_target_celsius(self, celsius, mode=config.SCHEDULE_HOLD):
+        """
+        Set the target temperature to the desired celsius, with more granular control of the hold
+        mode
+
+        :param celsius: The desired temperature in C
+        :param mode: The desired mode to operate in
+        """
+        temperature = celsius_to_nuheat(celsius)
+        self.set_target_temperature(temperature, mode)
+
+    def set_target_temperature(self, temperature, mode=config.SCHEDULE_HOLD):
         """
         Updates the target temperature on the NuHeat API
 
@@ -172,10 +216,10 @@ class NuHeatThermostat(object):
         if temperature > self.max_temperature:
             temperature = self.max_temperature
 
-        if permanent:
-            mode = config.SCHEDULE_HOLD
-        else:
-            mode = config.SCHEDULE_TEMPORARY_HOLD
+        modes = [config.SCHEDULE_TEMPORARY_HOLD, config.SCHEDULE_HOLD]
+        if mode not in modes:
+            raise Exception("Invalid mode. Please use one of: {}".format(modes))
+
         self.set_data({
             "SetPointTemp": temperature,
             "ScheduleMode": mode

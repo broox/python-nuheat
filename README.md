@@ -44,14 +44,28 @@ thermostat.max_fahrenheit
 thermostat.min_celsius
 thermostat.max_celsius
 
+# Get the current mode of the thermostat
+thermostat.schedule_mode
+
+# The possible schedule modes are one of the following 3 integers:
+# 1. Run the schedule programmed into the thermostat
+# 2. Temporarily hold a target temperature until the next scheduled event
+# 3. Permanently hold a target temperature until the mode is manually changed
+
 # Get other properties
 thermostat.heating
 thermostat.online
 thermostat.serial_number
-thermostat.schedule_mode
 
-# Set a new target temperature to turn the heat on/off. This is effectively a set and HOLD command,
-# so any pre-programmed thermostat schedules will be ignored.
+# Set a new target temperature with an explicit mode
+thermostat.set_target_fahrenheit(75, 2)
+
+# If you prefer celsius, you can use that too
+thermostat.set_target_celsius(23, 2)
+
+# If you want a permanent HOLD, you can also use the convenience property setters instead.
+# Note: Any pre-programmed thermostat schedules will be ignored until you resume the schedule or
+# change the mode.
 thermostat.target_fahrenheit = 75
 
 # If you prefer celsius you can do that too
@@ -59,4 +73,7 @@ thermostat.target_celsius = 23
 
 # Resume the schedule programmed into the thermostat
 thermostat.resume_schedule()
+
+# Which is effectively the same as explicitly changing the mode like so
+thermostat.schedule_mode = 1
 ```
