@@ -4,6 +4,18 @@ import nuheat.util as util
 
 class TestUtils(unittest.TestCase):
 
+    def test_round_half(self):
+        tests = [
+            [0.0, 0],
+            [31.4, 31],
+            [31.5, 32],
+            [32.4, 32],
+            [32.5, 33]
+        ]
+        for test in tests:
+            rounded = util.round_half(test[0])
+            self.assertEqual(rounded, test[1])
+
     def test_fahrenheit_to_celsius(self):
         tests = [
             [32, 0],
