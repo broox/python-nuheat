@@ -9,17 +9,22 @@ _LOGGER.setLevel(logging.DEBUG)
 
 class NuHeat(object):
 
-    def __init__(self, username, password, session_id=None):
+    def __init__(self, username, password, session_id=None, brand="NUHEAT"):
         """
         Initialize a NuHeat API session
 
         :param username: NuHeat username
         :param username: NuHeat password
         :param session_id: A Session ID token to re-use to avoid re-authenticating
+        :param brand: Manages which API is used, can be NUHEAT or MAPEHEAT
         """
         self.username = username
         self.password = password
         self._session_id = session_id
+        self._brand = brand if brand in config.BRANDS else config.BRANDS[0]
+        self._api_url = config.API_URL.format(
+            HOSTNAME=config.HOSTNAMES[self._brand],
+        )
 
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
@@ -38,7 +43,11 @@ class NuHeat(object):
             "Password": self.password,
             "application": "0"
         }
-        data = self.request(config.AUTH_URL, method="POST", data=post_data)
+        data = self.request(
+            url=config.AUTH_URL.format(API_URL=self._api_url),
+            method="POST",
+            data=post_data,
+        )
         session_id = data.get("SessionId")
         if not session_id:
             raise Exception("Authentication error")
@@ -63,7 +72,7 @@ class NuHeat(object):
         :param params: Querystring parameters
         :param retry: Attempt to re-authenticate and retry request if necessary
         """
-        headers = config.REQUEST_HEADERS
+        headers = config.get_request_headers(brand=self._brand)
 
         if params and self._session_id:
             params['sessionid'] = self._session_id
