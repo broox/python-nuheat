@@ -68,3 +68,29 @@ def nuheat_to_celsius(nuheat_temperature):
     """
     fahrenheit = nuheat_to_fahrenheit(nuheat_temperature)
     return fahrenheit_to_celsius(fahrenheit)
+
+def get_api_url(config, brand="NUHEAT"):
+    brand = brand if brand in config.BRANDS else config.BRANDS[0]
+    return config.API_URL.format(HOSTNAME=config.HOSTNAMES.get(brand))
+
+def get_auth_url(config, brand="NUHEAT"):
+    brand = brand if brand in config.BRANDS else config.BRANDS[0]
+    return config.AUTH_URL.format(
+        API_URL=get_api_url(config=config, brand=brand)
+    )
+
+def get_thermostat_url(config, brand="NUHEAT"):
+    brand = brand if brand in config.BRANDS else config.BRANDS[0]
+    return config.THERMOSTAT_URL.format(
+        API_URL=get_api_url(config=config, brand=brand)
+    )
+
+def get_request_headers(config, brand="NUHEAT"):
+    brand = brand if brand in config.BRANDS else config.BRANDS[0]
+    return {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+        "HOST": config.HOSTNAMES[brand],
+        "DNT": "1",
+        "Origin": get_api_url(config=config, brand=brand),
+    }

@@ -27,7 +27,7 @@ class TestNuHeat(NuTestCase):
         response_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
-            config.AUTH_URL,
+            util.get_auth_url(config=config),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -43,7 +43,7 @@ class TestNuHeat(NuTestCase):
         response_data = load_fixture("auth_error.json")
         responses.add(
             responses.POST,
-            config.AUTH_URL,
+            util.get_auth_url(config=config),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -81,8 +81,14 @@ class TestNuHeat(NuTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         request_headers = response.request.headers
-        self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
-        self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
+        self.assertEqual(
+            request_headers["Origin"],
+            util.get_request_headers(config=config)["Origin"],
+        )
+        self.assertEqual(
+            request_headers["Content-Type"],
+            util.get_request_headers(config=config)["Content-Type"],
+        )
 
     @responses.activate
     def test_post_request(self):
@@ -102,5 +108,11 @@ class TestNuHeat(NuTestCase):
         self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         self.assertEqual(response.request.body, urlencode(data))
         request_headers = response.request.headers
-        self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
-        self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
+        self.assertEqual(
+            request_headers["Origin"],
+            util.get_request_headers(config=config)["Origin"],
+        )
+        self.assertEqual(
+            request_headers["Content-Type"],
+            util.get_request_headers(config=config)["Content-Type"],
+        )
