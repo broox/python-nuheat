@@ -3,6 +3,7 @@ import nuheat.config as config
 from nuheat.util import (
     celsius_to_nuheat,
     fahrenheit_to_nuheat,
+    get_thermostat_url,
     nuheat_to_celsius,
     nuheat_to_fahrenheit
 )
@@ -139,7 +140,10 @@ class NuHeatThermostat(object):
             "serialnumber": self.serial_number
         }
         data = self._session.request(
-            url=config.THERMOSTAT_URL.format(API_URL=self._session._api_url),
+            url=get_thermostat_url(
+                config=config,
+                brand=self._session._brand,
+            ),
             params=params,
         )
 
@@ -341,4 +345,12 @@ class NuHeatThermostat(object):
         params = {
             "serialnumber": self.serial_number
         }
-        self._session.request(config.THERMOSTAT_URL, method="POST", data=post_data, params=params)
+        self._session.request(
+            url=get_thermostat_url(
+                config=config,
+                brand=self._session._brand,
+            ),
+            method="POST",
+            data=post_data,
+            params=params,
+        )

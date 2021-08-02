@@ -1,6 +1,6 @@
 import logging
 import requests
-import nuheat.config as config
+from nuheat import config, util
 from nuheat.thermostat import NuHeatThermostat
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,9 +22,6 @@ class NuHeat(object):
         self.password = password
         self._session_id = session_id
         self._brand = brand if brand in config.BRANDS else config.BRANDS[0]
-        self._api_url = config.API_URL.format(
-            HOSTNAME=config.HOSTNAMES[self._brand],
-        )
 
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
@@ -44,7 +41,7 @@ class NuHeat(object):
             "application": "0"
         }
         data = self.request(
-            url=config.AUTH_URL.format(API_URL=self._api_url),
+            url=util.get_auth_url(config=config, brand=self._brand),
             method="POST",
             data=post_data,
         )
@@ -72,7 +69,10 @@ class NuHeat(object):
         :param params: Querystring parameters
         :param retry: Attempt to re-authenticate and retry request if necessary
         """
-        headers = config.get_request_headers(brand=self._brand)
+        headers = util.get_request_headers(
+            config=config,
+            brand=self._brand,
+        )
 
         if params and self._session_id:
             params['sessionid'] = self._session_id
