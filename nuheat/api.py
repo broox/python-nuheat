@@ -75,7 +75,7 @@ class NuHeat(object):
 
         # Handle expired sessions
         if response.status_code == 401 and retry:
-            _LOGGER.warn("NuHeat APIrequest unauthorized [401]. Try to re-authenticate.")
+            _LOGGER.warning("NuHeat APIrequest unauthorized for  [401]. Try to re-authenticate.")
             self._session_id = None
             self.authenticate()
             return self.request(url, method=method, data=data, params=params, retry=False)
