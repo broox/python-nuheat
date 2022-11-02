@@ -77,3 +77,21 @@ thermostat.resume_schedule()
 # Which is effectively the same as explicitly changing the mode like so
 thermostat.schedule_mode = 1
 ```
+
+# Contributing
+
+Pull requests are always welcome!
+
+## Running locally with Docker
+
+```shell
+# Build and run the docker container:
+$ docker build -t python-nuheat .
+$ docker run -it --rm -v $(pwd):/python-nuheat python-nuheat
+
+# To run the interactive shell:
+$ ipython
+
+# To run tests:
+$ python -m unittest
+```

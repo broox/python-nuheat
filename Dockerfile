@@ -1,13 +1,3 @@
-# Build and run the docker container:
-# $ docker build -t python-nuheat .
-# $ docker run -it --rm -v $(pwd):/python-nuheat python-nuheat
-#
-# To run the interactive shell:
-# $ ipython
-#
-# To run tests:
-# $ python -m unittest
-
 FROM       python:3.6-slim
 
 VOLUME     /python-nuheat
