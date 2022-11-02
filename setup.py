@@ -22,6 +22,19 @@ setup(
       'Programming Language :: Python :: 3.5',
       'Programming Language :: Python :: 3.6',
       'Topic :: Software Development :: Libraries :: Python Modules',
-      'Topic :: Home Automation'
+      'Topic :: Home Automation',
   ],
+  install_requires=[
+    'requests==2.20.0',
+  ],
+  extras_require={
+    'dev': [
+      'coveralls==1.2.0',
+      'coverage==4.4.1',
+      'mock==2.0.0',
+      'nose==1.3.7',
+      'responses==0.8.1',
+    ]
+  },
+  python_requires=">=2.7",
 )
