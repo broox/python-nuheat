@@ -220,16 +220,16 @@ class NuHeatThermostat(object):
         tstat_tzs = self._data.get("TZOffset", "")
         tstat_tz = time.fromisoformat("00:00:00" + tstat_tzs).tzinfo
 
-        # Convert now to thermostat's timezone, so today/tomorrow will be right
+        # Convert now to thermostat's timezone, so day/next_day will be right
         now = datetime.now().astimezone(tstat_tz)
 
         # Find the first active event in the next week that is after now.
         # Note: We start with yesterday (-1), in case yesterday's "Sleep" time
         # is set for today.
         for add_days in range(-1, 8):
-            today = now.date() + timedelta(days=add_days)
-            tomorrow = today + timedelta(days=1)
-            dayofweek = today.weekday()
+            day = now.date() + timedelta(days=add_days)
+            next_day = day + timedelta(days=1)
+            dayofweek = day.weekday()
             for event in self._data.get("Schedules")[dayofweek].get("Events"):
                 # Times in thermostat schedule are relative to TZOffset
                 event_time = time.fromisoformat(event.get("Clock") + tstat_tzs)
@@ -239,9 +239,9 @@ class NuHeatThermostat(object):
                     # between midnight and 3am for the "Sleep" time.  These
                     # actually occur on the following day, based on empirical
                     # testing.
-                    event_dt = datetime.combine(tomorrow, event_time)
+                    event_dt = datetime.combine(next_day, event_time)
                 else:
-                    event_dt = datetime.combine(today, event_time)
+                    event_dt = datetime.combine(day, event_time)
                 if event.get("Active") and (now < event_dt):
                     # Convert back to local time before returning result
                     event_dt = event_dt.astimezone(datetime.now().tzinfo)
