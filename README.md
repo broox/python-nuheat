@@ -2,10 +2,10 @@
 
 [![PyPI version](https://badge.fury.io/py/nuheat.svg)](https://badge.fury.io/py/nuheat)
 [![Travis](https://travis-ci.org/broox/python-nuheat.svg?branch=master)](https://travis-ci.org/broox/python-nuheat)
-[![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master&release=0.2.0)](https://coveralls.io/github/broox/python-nuheat?branch=master)
+[![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master&release=0.3.0)](https://coveralls.io/github/broox/python-nuheat?branch=master)
 [![Supported Versions](https://img.shields.io/pypi/pyversions/nuheat.svg)](https://travis-ci.org/broox/python-nuheat)
 
-A Python 2/Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
+A Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
 
 * This uses the web-based NuHeat API, so it requires an external internet connection
 * The API in use is not an officially published API, so it could change without notice
@@ -13,13 +13,13 @@ A Python 2/Python 3 library that allows control of connected [NuHeat Signature](
 
 # Installation
 
-```
+```shell
 $ pip install nuheat
 ```
 
 # Usage
 
-```
+```python
 from nuheat import NuHeat
 
 # Initalize an API session with your login credentials
