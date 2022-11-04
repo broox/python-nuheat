@@ -4,7 +4,7 @@ import responses
 from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
 from . import NuTestCase, load_fixture, urlencode
-
+from datetime import datetime, timezone, timedelta, time
 
 class TestThermostat(NuTestCase):
     # pylint: disable=protected-access
@@ -256,22 +256,22 @@ class TestThermostat(NuTestCase):
     def test_set_target_fahrenheit(self, set_target_temperature, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.set_target_fahrenheit(80)
-        set_target_temperature.assert_called_with(2665, config.SCHEDULE_HOLD)
+        set_target_temperature.assert_called_with(2665, config.SCHEDULE_HOLD, None)
 
         thermostat = NuHeatThermostat(None, None)
         thermostat.set_target_fahrenheit(80, config.SCHEDULE_TEMPORARY_HOLD)
-        set_target_temperature.assert_called_with(2665, config.SCHEDULE_TEMPORARY_HOLD)
+        set_target_temperature.assert_called_with(2665, config.SCHEDULE_TEMPORARY_HOLD, None)
 
     @patch("nuheat.NuHeatThermostat.get_data")
     @patch("nuheat.NuHeatThermostat.set_target_temperature")
     def test_set_target_celsius(self, set_target_temperature, _):
         thermostat = NuHeatThermostat(None, None)
         thermostat.set_target_celsius(26)
-        set_target_temperature.assert_called_with(2609, config.SCHEDULE_HOLD)
+        set_target_temperature.assert_called_with(2609, config.SCHEDULE_HOLD, None)
 
         thermostat = NuHeatThermostat(None, None)
         thermostat.set_target_celsius(26, config.SCHEDULE_TEMPORARY_HOLD)
-        set_target_temperature.assert_called_with(2609, config.SCHEDULE_TEMPORARY_HOLD)
+        set_target_temperature.assert_called_with(2609, config.SCHEDULE_TEMPORARY_HOLD, None)
 
     @patch("nuheat.NuHeatThermostat.get_data")
     @patch("nuheat.NuHeatThermostat.set_data")
@@ -287,11 +287,49 @@ class TestThermostat(NuTestCase):
             "ScheduleMode": config.SCHEDULE_HOLD
         })
 
-        # Temporary hold
+        self.assertEqual(thermostat.hold_time, None)
+
+        # Temporary hold - no schedule, no hold time from server
         thermostat.set_target_temperature(2222, mode=config.SCHEDULE_TEMPORARY_HOLD)
         set_data.assert_called_with({
             "SetPointTemp": 2222,
             "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD
+        })
+
+        # Temporary hold - no schedule, server HoldSetPointDateTime available
+        # Battle of Lexington and Concord
+        est = timezone(timedelta(hours=-5), 'EST') 
+        thermostat.schedule_mode = config.SCHEDULE_RUN
+        thermostat._hold_time = datetime(1775, 4, 19, 5, 0, tzinfo=est)
+        thermostat.set_target_temperature(2223, mode=config.SCHEDULE_TEMPORARY_HOLD)
+        set_data.assert_called_with({
+            "SetPointTemp": 2223,
+            "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
+            "HoldSetPointDateTime": "Wed, 19 Apr 1775 10:00:00 GMT"
+        })
+
+        # Temporary hold - time specified
+        # Attack on Fort Sumter
+        hold_time = datetime(1861, 4, 12, 4, 30, tzinfo=est)
+        thermostat.set_target_temperature(2224, mode=config.SCHEDULE_TEMPORARY_HOLD, hold_time=hold_time)
+        set_data.assert_called_with({
+            "SetPointTemp": 2224,
+            "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
+            "HoldSetPointDateTime": "Fri, 12 Apr 1861 09:30:00 GMT"
+        })
+
+        # Simulate effect of calling get_data after setting temporary hold
+        thermostat._schedule_mode = config.SCHEDULE_TEMPORARY_HOLD
+        thermostat._hold_time = datetime.fromisoformat("1861-04-12T09:30:00+00:00")
+        self.assertEqual(thermostat.hold_time, thermostat._hold_time)
+
+        # Temporary hold - use previous hold time
+        # Attack on Fort Sumter
+        thermostat.set_target_temperature(2225, mode=config.SCHEDULE_TEMPORARY_HOLD)
+        set_data.assert_called_with({
+            "SetPointTemp": 2225,
+            "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
+            "HoldSetPointDateTime": "Fri, 12 Apr 1861 09:30:00 GMT"
         })
 
         # Below minimum
@@ -311,6 +349,148 @@ class TestThermostat(NuTestCase):
         # Invalid mode
         with self.assertRaises(Exception) as _:
             thermostat.set_target_temperature(2222, 5)
+
+    @patch("nuheat.NuHeatThermostat.get_data")
+    @patch("nuheat.NuHeatThermostat.set_data")
+    def test_hold_time_setter(self, set_data, _):
+        thermostat = NuHeatThermostat(None, None)
+        thermostat.min_temperature = 500
+        thermostat.max_temperature = 7000
+
+        # Battle of Gettysburg
+        est = timezone(timedelta(hours=-5), 'EST') 
+        hold_time = datetime(1863, 7, 1, 7, 30, tzinfo=est)
+        with self.assertRaises(Exception) as _:
+            # Invalid hold_time - must be in the future.
+            thermostat.hold_time = hold_time
+
+        # 6 hours from now
+        hold_time = datetime.now(timezone.utc) + timedelta(hours=+6)
+        hold_str = hold_time.strftime("%a, %d %b %Y %H:%M:%S GMT")
+        thermostat.hold_time = hold_time
+        set_data.assert_called_with({
+            "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
+            "HoldSetPointDateTime": hold_str
+        })
+
+    @responses.activate
+    def test_next_schedule_event(self):
+        # Use thermostat.json to load a schedule into thermostat
+        response_data = load_fixture("thermostat.json")
+        responses.add(
+            responses.GET,
+            config.THERMOSTAT_URL,
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+        api = NuHeat(None, None, session_id="my-session")
+        serial_number = response_data.get("SerialNumber")
+
+        thermostat = NuHeatThermostat(api, serial_number)
+        thermostat.get_data()
+
+        # Does anybody really know what time it is?
+        with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
+            # Monday @ 11:00am (WW1 Armistice)
+            wet = timezone(timedelta(hours=+1), 'WET') 
+            thermostat._data["TZOffset"] = "+01:00"
+            mock_dt.now.return_value = datetime(1918, 11, 11, 11, 0, tzinfo=wet)
+            next_event = thermostat.next_schedule_event
+            # next_event = 9:30pm, same day
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1918, 11, 11, 21, 30, tzinfo=wet))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2666)
+
+            # Monday @ 02:41am (VE Day, first signing)
+            wemt = timezone(timedelta(hours=+2), 'WEMT')
+            thermostat._data["TZOffset"] = "+02:00"
+            mock_dt.now.return_value = datetime(1945, 5, 7, 2, 41, tzinfo=wemt)
+            # next_event = Monday @ 5:45am
+            next_event = thermostat.next_schedule_event
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1945, 5, 7, 5, 45, tzinfo=wemt))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2666)
+
+            # Change Sunday "sleep" time to 3am
+            thermostat._data["Schedules"][6]["Events"][3]["Clock"] = "03:00:00"
+            # next_event = Monday @ 3:00am
+            next_event = thermostat.next_schedule_event
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1945, 5, 7, 3, 0, tzinfo=wemt))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2333)
+
+            # Friday @ 10:45pm (Fall of Berlin Wall)
+            cet = timezone(timedelta(hours=+1), 'CET')
+            thermostat._data["TZOffset"] = "+01:00"
+            mock_dt.now.return_value = datetime(1990, 11, 9, 22, 45, tzinfo=cet)
+            # next_event = Midnight Friday night / Saturday morning
+            next_event = thermostat.next_schedule_event
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1990, 11, 10, 0, 0, tzinfo=cet))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2222)
+
+            # Disable Friday's "sleep" event
+            thermostat._data["Schedules"][4]["Events"][3]["Active"] = False
+            # next_event = 8am Saturday morning
+            next_event = thermostat.next_schedule_event
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1990, 11, 10, 8, 0, tzinfo=cet))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2666)
+
+            # Simulate thermostat and python-nuheat in different timezones
+            # Thermostat in GMT (schedule becomes relative to there)
+            thermostat._data["TZOffset"] = "+00:00"
+            # next_event = 9am Saturday morning
+            next_event = thermostat.next_schedule_event
+            next_event["Time"] = next_event["Time"].astimezone(cet)
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1990, 11, 10, 9, 0, tzinfo=cet))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2666)
+
+            # Thermostat in Auckland, NZ (where time is 10:45am Saturday)
+            thermostat._data["TZOffset"] = "+13:00"
+            nzdt = timezone(timedelta(hours=+13), 'NZDT')
+            # next_event = 10pm Saturday evening in Auckland
+            next_event = thermostat.next_schedule_event
+            next_event["Time"] = next_event["Time"].astimezone(nzdt)
+            self.assertEqual(next_event.get("Time"),
+                             datetime(1990, 11, 10, 22, 0, tzinfo=nzdt))
+            self.assertEqual(next_event.get("NuheatTemperature"), 2666)
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.set_data")
+    def test_set_target_temperature_temporary_hold_time(self, set_data):
+        response_data = load_fixture("thermostat.json")
+        responses.add(
+            responses.GET,
+            config.THERMOSTAT_URL,
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+        api = NuHeat(None, None, session_id="my-session")
+        serial_number = response_data.get("SerialNumber")
+        params = {
+            "sessionid": api._session_id,
+            "serialnumber": serial_number
+        }
+        request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
+
+        with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
+            thermostat = NuHeatThermostat(api, serial_number)
+            thermostat.get_data()
+
+            cet = timezone(timedelta(hours=+1), 'CET')
+            thermostat._data["TZOffset"] = "+01:00"
+            mock_dt.now.return_value = datetime(1990, 11, 9, 22, 45, tzinfo=cet)
+            thermostat.set_target_temperature(2222,
+                                              config.SCHEDULE_TEMPORARY_HOLD)
+            set_data.assert_called_with({
+                "SetPointTemp": 2222,
+                "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
+                "HoldSetPointDateTime": "Fri, 09 Nov 1990 23:00:00 GMT"
+            })
 
     @responses.activate
     @patch("nuheat.NuHeatThermostat.get_data")

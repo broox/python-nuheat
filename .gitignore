@@ -5,3 +5,4 @@ dist/
 .cache
 .coverage
 __pycache__
+.*.sw*
