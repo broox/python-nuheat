@@ -105,5 +105,5 @@ $ docker run -it --rm -v $(pwd):/python-nuheat python-nuheat
 $ ipython
 
 # To run tests:
-$ python -m unittest
+$ pytest
 ```
