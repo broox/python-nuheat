@@ -33,6 +33,7 @@ setup(
       'coverage==6.5.0',
       'mock==4.0.3',
       'pytest==7.2.0',
+      'pytest-cov==4.0.0',
       'responses==0.22.0',
     ]
   },
