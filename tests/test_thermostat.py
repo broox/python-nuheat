@@ -1,10 +1,13 @@
 import json
 import responses
 
-from nuheat import NuHeat, NuHeatThermostat, config
+from datetime import datetime, timezone, timedelta
 from mock import patch
-from . import NuTestCase, load_fixture, urlencode
-from datetime import datetime, timezone, timedelta, time
+from urllib.parse import urlencode
+
+from nuheat import NuHeat, NuHeatThermostat, config
+from . import NuTestCase, load_fixture
+
 
 class TestThermostat(NuTestCase):
     # pylint: disable=protected-access
@@ -298,7 +301,7 @@ class TestThermostat(NuTestCase):
 
         # Temporary hold - no schedule, server HoldSetPointDateTime available
         # Battle of Lexington and Concord
-        est = timezone(timedelta(hours=-5), 'EST') 
+        est = timezone(timedelta(hours=-5), 'EST')
         thermostat.schedule_mode = config.SCHEDULE_RUN
         thermostat._hold_time = datetime(1775, 4, 19, 5, 0, tzinfo=est)
         thermostat.set_target_temperature(2223, mode=config.SCHEDULE_TEMPORARY_HOLD)
@@ -358,7 +361,7 @@ class TestThermostat(NuTestCase):
         thermostat.max_temperature = 7000
 
         # Battle of Gettysburg
-        est = timezone(timedelta(hours=-5), 'EST') 
+        est = timezone(timedelta(hours=-5), 'EST')
         hold_time = datetime(1863, 7, 1, 7, 30, tzinfo=est)
         with self.assertRaises(Exception) as _:
             # Invalid hold_time - must be in the future.
@@ -393,7 +396,7 @@ class TestThermostat(NuTestCase):
         # Does anybody really know what time it is?
         with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
             # Monday @ 11:00am (WW1 Armistice)
-            wet = timezone(timedelta(hours=+1), 'WET') 
+            wet = timezone(timedelta(hours=+1), 'WET')
             thermostat._data["TZOffset"] = "+01:00"
             mock_dt.now.return_value = datetime(1918, 11, 11, 11, 0, tzinfo=wet)
             next_event = thermostat.next_schedule_event
@@ -471,11 +474,6 @@ class TestThermostat(NuTestCase):
         )
         api = NuHeat(None, None, session_id="my-session")
         serial_number = response_data.get("SerialNumber")
-        params = {
-            "sessionid": api._session_id,
-            "serialnumber": serial_number
-        }
-        request_url = "{}?{}".format(config.THERMOSTAT_URL, urlencode(params))
 
         with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
             thermostat = NuHeatThermostat(api, serial_number)

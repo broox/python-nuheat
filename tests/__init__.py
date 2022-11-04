@@ -2,11 +2,7 @@ import json
 import os
 import unittest
 
-try:  # Python 3
-    from urllib.parse import parse_qsl, urlencode, urlparse
-except ImportError:  # Python 2
-    from urllib import urlencode
-    from urlparse import parse_qsl, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 
 def load_fixture(filename):
