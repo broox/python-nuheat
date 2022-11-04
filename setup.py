@@ -1,10 +1,15 @@
 from setuptools import setup
 
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
 setup(
   name='nuheat',
   packages=['nuheat'],
   version='1.0.0',
   description='A Python library that allows control of connected NuHeat Signature radiant floor thermostats.',
+  long_description=long_description,
+  long_description_content_type="text/markdown",
   author='Derek Brooks',
   author_email='derek@broox.com',
   url='https://github.com/broox/python-nuheat',
