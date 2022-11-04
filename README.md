@@ -77,8 +77,7 @@ thermostat.resume_schedule()
 # Which is effectively the same as explicitly changing the mode like so
 thermostat.schedule_mode = 1
 
-# To set a new target temperature with an explicit mode
-# Note: Available modes are defined in `config.py`
+# To set a new target temperature with an explicit schedule mode
 thermostat.set_target_fahrenheit(72, mode=2)
 
 # If you prefer celsius, you can use that too
