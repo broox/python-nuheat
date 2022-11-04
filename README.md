@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/nuheat.svg)](https://badge.fury.io/py/nuheat)
 [![Travis](https://travis-ci.org/broox/python-nuheat.svg?branch=master)](https://travis-ci.org/broox/python-nuheat)
-[![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master&release=0.3.0)](https://coveralls.io/github/broox/python-nuheat?branch=master)
+[![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master&release=1.0.0)](https://coveralls.io/github/broox/python-nuheat?branch=master)
 [![Supported Versions](https://img.shields.io/pypi/pyversions/nuheat.svg)](https://travis-ci.org/broox/python-nuheat)
 
 A Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.

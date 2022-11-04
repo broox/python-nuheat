@@ -8,7 +8,7 @@ setup(
   author='Derek Brooks',
   author_email='derek@broox.com',
   url='https://github.com/broox/python-nuheat',
-  download_url='https://github.com/broox/python-nuheat/archive/0.3.0.tar.gz',
+  download_url='https://github.com/broox/python-nuheat/archive/1.0.0.tar.gz',
   license='MIT',
   keywords=['nuheat', 'thermostat', 'home automation', 'python'],
   classifiers=[
