@@ -57,25 +57,38 @@ thermostat.heating
 thermostat.online
 thermostat.serial_number
 
-# Set a new target temperature with an explicit mode
-thermostat.set_target_fahrenheit(75, 2)
-
-# If you prefer celsius, you can use that too
-thermostat.set_target_celsius(23, 2)
-
-# If you want a permanent HOLD, you can also use the convenience property setters instead.
+# Set a new temperature and permanently hold
 # Note: Any pre-programmed thermostat schedules will be ignored until you resume the schedule or
 # change the mode.
-thermostat.target_fahrenheit = 75
+thermostat.set_target_fahrenheit(72)
 
-# If you prefer celsius you can do that too
-thermostat.target_celsius = 23
+# If you prefer celsius...
+thermostat.set_target_celsius(22)
 
-# Resume the schedule programmed into the thermostat
+# You can also do this via the convenience property setters
+thermostat.target_fahrenheit = 72
+
+# or with celsius
+thermostat.target_celsius = 22
+
+# To resume the schedule programmed into the thermostat
 thermostat.resume_schedule()
 
 # Which is effectively the same as explicitly changing the mode like so
 thermostat.schedule_mode = 1
+
+# To set a new target temperature with an explicit mode
+# Note: Available modes are defined in `config.py`
+thermostat.set_target_fahrenheit(72, mode=2)
+
+# If you prefer celsius, you can use that too
+thermostat.set_target_celsius(22, mode=2)
+
+# Set a target temperature until a specified datetime
+# Note: A timezone aware datetime should be passed in, otherwise UTC will be assumed
+from datetime import datetime, timedelta, timezone
+hold_time = datetime.now() + timedelta(hours=4)
+thermostat.set_target_fahrenheit(69, mode=2, hold_time=hold_time)
 ```
 
 # Contributing
