@@ -1,9 +1,12 @@
 import json
 import responses
 
-from nuheat import NuHeat, NuHeatThermostat, config
 from mock import patch
-from . import NuTestCase, load_fixture, urlencode
+from urllib.parse import urlencode
+
+from nuheat import NuHeat, NuHeatThermostat, config
+from . import NuTestCase, load_fixture
+
 
 class TestNuHeat(NuTestCase):
     # pylint: disable=protected-access

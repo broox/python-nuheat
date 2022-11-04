@@ -112,7 +112,6 @@ class NuHeatThermostat(object):
             return None
         return nuheat_to_celsius(self.target_temperature)
 
-
     @target_fahrenheit.setter
     def target_fahrenheit(self, fahrenheit):
         """
@@ -233,8 +232,7 @@ class NuHeatThermostat(object):
             for event in self._data.get("Schedules")[dayofweek].get("Events"):
                 # Times in thermostat schedule are relative to TZOffset
                 event_time = time.fromisoformat(event.get("Clock") + tstat_tzs)
-                if (event.get("ScheduleType") == 3 and
-                    event_time <= time(3, 0, 0, 0, tstat_tz)):
+                if (event.get("ScheduleType") == 3 and event_time <= time(3, 0, 0, 0, tstat_tz)):
                     # Special case: Thermostat schedule will accept times
                     # between midnight and 3am for the "Sleep" time.  These
                     # actually occur on the following day, based on empirical
@@ -257,7 +255,7 @@ class NuHeatThermostat(object):
         """
         self.schedule_mode = config.SCHEDULE_RUN
 
-    def set_target_fahrenheit(self, fahrenheit, mode=config.SCHEDULE_HOLD, hold_time = None):
+    def set_target_fahrenheit(self, fahrenheit, mode=config.SCHEDULE_HOLD, hold_time=None):
         """
         Set the target temperature to the desired fahrenheit, with more granular control of the
         hold mode
@@ -270,7 +268,7 @@ class NuHeatThermostat(object):
         temperature = fahrenheit_to_nuheat(fahrenheit)
         self.set_target_temperature(temperature, mode, hold_time)
 
-    def set_target_celsius(self, celsius, mode=config.SCHEDULE_HOLD, hold_time = None):
+    def set_target_celsius(self, celsius, mode=config.SCHEDULE_HOLD, hold_time=None):
         """
         Set the target temperature to the desired celsius, with more granular control of the hold
         mode
@@ -283,7 +281,7 @@ class NuHeatThermostat(object):
         temperature = celsius_to_nuheat(celsius)
         self.set_target_temperature(temperature, mode, hold_time)
 
-    def set_target_temperature(self, temperature, mode=config.SCHEDULE_HOLD, hold_time = None):
+    def set_target_temperature(self, temperature, mode=config.SCHEDULE_HOLD, hold_time=None):
         """
         Updates the target temperature on the NuHeat API
 
