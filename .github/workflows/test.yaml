@@ -7,12 +7,11 @@ on:
     branches: [master]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -33,4 +32,20 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --per-file-ignores='*/__init__.py:F401' --statistics
       - name: Unit test
         run: |
-          python -m nose
+          python -m pytest --cov=./nuheat --cov-report lcov
+      - name: Coveralls Parallel
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          flag-name: run-${{ matrix.python-version }}
+          path-to-lcov: coverage.lcov
+          parallel: true
+  coveralls:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

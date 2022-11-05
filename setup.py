@@ -1,10 +1,15 @@
 from setuptools import setup
 
+with open('README.md', 'r') as fh:
+    long_description = fh.read()
+
 setup(
   name='nuheat',
   packages=['nuheat'],
   version='1.0.0',
   description='A Python library that allows control of connected NuHeat Signature radiant floor thermostats.',
+  long_description=long_description,
+  long_description_content_type="text/markdown",
   author='Derek Brooks',
   author_email='derek@broox.com',
   url='https://github.com/broox/python-nuheat',
@@ -17,6 +22,10 @@ setup(
       'Operating System :: OS Independent',
       'Programming Language :: Python',
       'Programming Language :: Python :: 3.7',
+      'Programming Language :: Python :: 3.8',
+      'Programming Language :: Python :: 3.9',
+      'Programming Language :: Python :: 3.10',
+      'Programming Language :: Python :: 3.11',
       'Topic :: Software Development :: Libraries :: Python Modules',
       'Topic :: Home Automation',
   ],
@@ -28,7 +37,8 @@ setup(
       'coveralls==3.3.1',
       'coverage==6.5.0',
       'mock==4.0.3',
-      'nose==1.3.7',
+      'pytest==7.2.0',
+      'pytest-cov==4.0.0',
       'responses==0.22.0',
     ]
   },

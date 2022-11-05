@@ -1,9 +1,11 @@
 # Python NuHeat
 
-[![PyPI version](https://badge.fury.io/py/nuheat.svg)](https://badge.fury.io/py/nuheat)
-[![Travis](https://travis-ci.org/broox/python-nuheat.svg?branch=master)](https://travis-ci.org/broox/python-nuheat)
-[![Coveralls](https://coveralls.io/repos/github/broox/python-nuheat/badge.svg?branch=master&release=1.0.0)](https://coveralls.io/github/broox/python-nuheat?branch=master)
-[![Supported Versions](https://img.shields.io/pypi/pyversions/nuheat.svg)](https://travis-ci.org/broox/python-nuheat)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
+[![PyPI - Version](https://img.shields.io/pypi/v/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/broox/python-nuheat/Python%20package?style=flat-square)](https://github.com/broox/python-nuheat/actions?query=branch%3Amaster)
+[![Coveralls](https://img.shields.io/coveralls/github/broox/python-nuheat?style=flat-square)](https://coveralls.io/github/broox/python-nuheat?branch=master)
+[![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/broox/python-nuheat?style=flat-square)](https://snyk.io/advisor/python/nuheat)
 
 A Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
 
@@ -105,5 +107,5 @@ $ docker run -it --rm -v $(pwd):/python-nuheat python-nuheat
 $ ipython
 
 # To run tests:
-$ python -m unittest
+$ pytest
 ```
