@@ -140,10 +140,7 @@ class NuHeatThermostat(object):
             "serialnumber": self.serial_number
         }
         data = self._session.request(
-            url=get_thermostat_url(
-                config=config,
-                brand=self._session._brand,
-            ),
+            url=get_thermostat_url(brand=self._session._brand),
             params=params,
         )
 
@@ -346,10 +343,7 @@ class NuHeatThermostat(object):
             "serialnumber": self.serial_number
         }
         self._session.request(
-            url=get_thermostat_url(
-                config=config,
-                brand=self._session._brand,
-            ),
+            url=get_thermostat_url(brand=self._session._brand),
             method="POST",
             data=post_data,
             params=params,

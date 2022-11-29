@@ -27,7 +27,7 @@ class TestNuHeat(NuTestCase):
         response_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
-            util.get_auth_url(config=config),
+            util.get_auth_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -43,7 +43,7 @@ class TestNuHeat(NuTestCase):
         response_data = load_fixture("auth_error.json")
         responses.add(
             responses.POST,
-            util.get_auth_url(config=config),
+            util.get_auth_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -83,11 +83,11 @@ class TestNuHeat(NuTestCase):
         request_headers = response.request.headers
         self.assertEqual(
             request_headers["Origin"],
-            util.get_request_headers(config=config)["Origin"],
+            util.get_request_headers()["Origin"],
         )
         self.assertEqual(
             request_headers["Content-Type"],
-            util.get_request_headers(config=config)["Content-Type"],
+            util.get_request_headers()["Content-Type"],
         )
 
     @responses.activate
@@ -110,9 +110,9 @@ class TestNuHeat(NuTestCase):
         request_headers = response.request.headers
         self.assertEqual(
             request_headers["Origin"],
-            util.get_request_headers(config=config)["Origin"],
+            util.get_request_headers()["Origin"],
         )
         self.assertEqual(
             request_headers["Content-Type"],
-            util.get_request_headers(config=config)["Content-Type"],
+            util.get_request_headers()["Content-Type"],
         )
