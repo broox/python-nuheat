@@ -4,7 +4,7 @@ import responses
 from mock import patch
 from urllib.parse import urlencode
 
-from nuheat import NuHeat, NuHeatThermostat, config
+from nuheat import NuHeat, NuHeatThermostat, config, util
 from . import NuTestCase, load_fixture
 
 
