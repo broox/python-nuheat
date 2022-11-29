@@ -1,7 +1,9 @@
-BRANDS = ("NUHEAT", "MAPEHEAT")
+NUHEAT = "NUHEAT"
+MAPEHEAT = "MAPEHEAT"
+BRANDS = (NUHEAT, MAPEHEAT)
 HOSTNAMES = {
-    "NUHEAT": "mynuheat.com",
-    "MAPEHEAT": "mymapeheat.com",
+    NUHEAT: "mynuheat.com",
+    MAPEHEAT: "mymapeheat.com",
 }
 API_URL = "https://{HOSTNAME}/api"
 

@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from mock import patch
 from urllib.parse import urlencode
 
-from nuheat import NuHeat, NuHeatThermostat, config
+from nuheat import NuHeat, NuHeatThermostat, config, util
 from . import NuTestCase, load_fixture
 
 
@@ -394,7 +394,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            config.THERMOSTAT_URL,
+            util.get_thermostat_url(config=config),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -479,7 +479,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            config.THERMOSTAT_URL,
+            util.get_thermostat_url(config=config),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"

@@ -9,7 +9,7 @@ _LOGGER.setLevel(logging.DEBUG)
 
 class NuHeat(object):
 
-    def __init__(self, username, password, session_id=None, brand="NUHEAT"):
+    def __init__(self, username, password, session_id=None, brand=config.NUHEAT):
         """
         Initialize a NuHeat API session
 
