@@ -41,7 +41,7 @@ class NuHeat(object):
             "application": "0"
         }
         data = self.request(
-            url=util.get_auth_url(config=config, brand=self._brand),
+            url=util.get_auth_url(brand=self._brand),
             method="POST",
             data=post_data,
         )
@@ -69,10 +69,7 @@ class NuHeat(object):
         :param params: Querystring parameters
         :param retry: Attempt to re-authenticate and retry request if necessary
         """
-        headers = util.get_request_headers(
-            config=config,
-            brand=self._brand,
-        )
+        headers = util.get_request_headers(brand=self._brand)
 
         if params and self._session_id:
             params['sessionid'] = self._session_id

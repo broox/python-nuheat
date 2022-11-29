@@ -126,7 +126,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -138,7 +138,7 @@ class TestThermostat(NuTestCase):
             "serialnumber": serial_number
         }
         request_url = "{}?{}".format(
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             urlencode(params),
         )
 
@@ -171,7 +171,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -180,7 +180,7 @@ class TestThermostat(NuTestCase):
         # A later, second request throws 401 Unauthorized
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=401
         )
 
@@ -188,7 +188,7 @@ class TestThermostat(NuTestCase):
         auth_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
-            util.get_auth_url(config=config),
+            util.get_auth_url(),
             status=200,
             body=json.dumps(auth_data),
             content_type="application/json"
@@ -197,7 +197,7 @@ class TestThermostat(NuTestCase):
         # Third request is successful
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -218,7 +218,7 @@ class TestThermostat(NuTestCase):
         unauthorized_attempt = api_calls[1]
         params = {"sessionid": bad_session_id, "serialnumber": serial_number}
         request_url = "{}?{}".format(
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             urlencode(params),
         )
         self.assertEqual(unauthorized_attempt.request.method, "GET")
@@ -229,13 +229,13 @@ class TestThermostat(NuTestCase):
         self.assertEqual(auth_call.request.method, "POST")
         self.assertUrlsEqual(
             auth_call.request.url,
-            util.get_auth_url(config=config)
+            util.get_auth_url()
         )
 
         second_attempt = api_calls[3]
         params["sessionid"] = good_session_id
         request_url = "{}?{}".format(
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             urlencode(params),
         )
         self.assertEqual(second_attempt.request.method, "GET")
@@ -394,7 +394,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -479,7 +479,7 @@ class TestThermostat(NuTestCase):
         response_data = load_fixture("thermostat.json")
         responses.add(
             responses.GET,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -507,7 +507,7 @@ class TestThermostat(NuTestCase):
     def test_set_data(self, _):
         responses.add(
             responses.POST,
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             status=200,
             content_type="application/json"
         )
@@ -519,7 +519,7 @@ class TestThermostat(NuTestCase):
             "serialnumber": serial_number
         }
         request_url = "{}?{}".format(
-            util.get_thermostat_url(config=config),
+            util.get_thermostat_url(),
             urlencode(params),
         )
         post_data = {"test": "data"}
