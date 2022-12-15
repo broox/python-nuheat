@@ -1,7 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
 
-from nuheat import config
-
 
 def round_half(number):
     """
@@ -70,29 +68,3 @@ def nuheat_to_celsius(nuheat_temperature):
     """
     fahrenheit = nuheat_to_fahrenheit(nuheat_temperature)
     return fahrenheit_to_celsius(fahrenheit)
-
-def get_api_url(brand=config.NUHEAT):
-    brand = brand if brand in config.BRANDS else config.BRANDS[0]
-    return config.API_URL.format(HOSTNAME=config.HOSTNAMES.get(brand))
-
-def get_auth_url(brand=config.NUHEAT):
-    brand = brand if brand in config.BRANDS else config.BRANDS[0]
-    return config.AUTH_URL.format(
-        API_URL=get_api_url(brand=brand)
-    )
-
-def get_thermostat_url(brand=config.NUHEAT):
-    brand = brand if brand in config.BRANDS else config.BRANDS[0]
-    return config.THERMOSTAT_URL.format(
-        API_URL=get_api_url(brand=brand)
-    )
-
-def get_request_headers(brand=config.NUHEAT):
-    brand = brand if brand in config.BRANDS else config.BRANDS[0]
-    return {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "application/json",
-        "HOST": config.HOSTNAMES[brand],
-        "DNT": "1",
-        "Origin": get_api_url(brand=brand),
-    }

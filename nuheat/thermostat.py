@@ -3,7 +3,6 @@ import nuheat.config as config
 from nuheat.util import (
     celsius_to_nuheat,
     fahrenheit_to_nuheat,
-    get_thermostat_url,
     nuheat_to_celsius,
     nuheat_to_fahrenheit
 )
@@ -40,6 +39,17 @@ class NuHeatThermostat(object):
             self.target_fahrenheit,
             self.target_celsius
         )
+
+    @classmethod
+    def get_url(cls, api_url):
+        """
+        A helper method to solve a circular dependency when testing
+        """
+        return f"{api_url}/thermostat"
+
+    @property
+    def _url(self):
+        return self.get_url(self._session._api_url)
 
     @property
     def fahrenheit(self):
@@ -140,7 +150,7 @@ class NuHeatThermostat(object):
             "serialnumber": self.serial_number
         }
         data = self._session.request(
-            url=get_thermostat_url(brand=self._session._brand),
+            url=self._url,
             params=params,
         )
 
@@ -343,7 +353,7 @@ class NuHeatThermostat(object):
             "serialnumber": self.serial_number
         }
         self._session.request(
-            url=get_thermostat_url(brand=self._session._brand),
+            url=self._url,
             method="POST",
             data=post_data,
             params=params,
