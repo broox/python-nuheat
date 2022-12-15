@@ -5,10 +5,6 @@ HOSTNAMES = {
     NUHEAT: "mynuheat.com",
     MAPEHEAT: "mymapeheat.com",
 }
-API_URL = "https://{HOSTNAME}/api"
-
-AUTH_URL = "{API_URL}/authenticate/user"
-THERMOSTAT_URL = "{API_URL}/thermostat"
 
 # NuHeat Schedule Modes
 SCHEDULE_RUN = 1

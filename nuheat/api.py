@@ -1,6 +1,6 @@
 import logging
 import requests
-from nuheat import config, util
+from nuheat import config
 from nuheat.thermostat import NuHeatThermostat
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +26,28 @@ class NuHeat(object):
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
 
+    @property
+    def _hostname(self):
+        return config.HOSTNAMES.get(self._brand)
+
+    @property
+    def _api_url(self):
+        return f"https://{self._hostname}/api"
+
+    @property
+    def _auth_url(self):
+        return f"{self._api_url}/authenticate/user"
+
+    @property
+    def _request_headers(self):
+        return {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "HOST": self._hostname,
+            "DNT": "1",
+            "Origin": self._api_url,
+        }
+
     def authenticate(self):
         """
         Authenticate against the NuHeat API
@@ -41,7 +63,7 @@ class NuHeat(object):
             "application": "0"
         }
         data = self.request(
-            url=util.get_auth_url(brand=self._brand),
+            url=self._auth_url,
             method="POST",
             data=post_data,
         )
@@ -69,7 +91,7 @@ class NuHeat(object):
         :param params: Querystring parameters
         :param retry: Attempt to re-authenticate and retry request if necessary
         """
-        headers = util.get_request_headers(brand=self._brand)
+        headers = self._request_headers
 
         if params and self._session_id:
             params['sessionid'] = self._session_id

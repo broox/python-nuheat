@@ -124,25 +124,29 @@ class TestThermostat(NuTestCase):
     @responses.activate
     def test_get_data(self):
         response_data = load_fixture("thermostat.json")
+
+        api = NuHeat(None, None, session_id="my-session")
+
         responses.add(
             responses.GET,
-            util.get_thermostat_url(),
+            NuHeatThermostat.get_url(api._api_url),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
-        api = NuHeat(None, None, session_id="my-session")
+
         serial_number = response_data.get("SerialNumber")
+        thermostat = NuHeatThermostat(api, serial_number)
+
         params = {
             "sessionid": api._session_id,
             "serialnumber": serial_number
         }
         request_url = "{}?{}".format(
-            util.get_thermostat_url(),
+            thermostat._url,
             urlencode(params),
         )
 
-        thermostat = NuHeatThermostat(api, serial_number)
         thermostat.get_data()
 
         api_calls = responses.calls
@@ -169,26 +173,33 @@ class TestThermostat(NuTestCase):
     def test_get_data_401(self):
         # First request (when initializing the thermostat) is successful
         response_data = load_fixture("thermostat.json")
+        auth_data = load_fixture("auth_success.json")
+
+        bad_session_id = "my-bad-session"
+        good_session_id = auth_data.get("SessionId")
+        api = NuHeat(None, None, session_id=bad_session_id)
         responses.add(
             responses.GET,
-            util.get_thermostat_url(),
+            NuHeatThermostat.get_url(api._api_url),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
 
+        serial_number = response_data.get("SerialNumber")
+        thermostat = NuHeatThermostat(api, serial_number)
+
         # A later, second request throws 401 Unauthorized
         responses.add(
             responses.GET,
-            util.get_thermostat_url(),
+            thermostat._url,
             status=401
         )
 
         # Attempt to reauthenticate
-        auth_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
-            util.get_auth_url(),
+            api._auth_url,
             status=200,
             body=json.dumps(auth_data),
             content_type="application/json"
@@ -197,18 +208,12 @@ class TestThermostat(NuTestCase):
         # Third request is successful
         responses.add(
             responses.GET,
-            util.get_thermostat_url(),
+            thermostat._url,
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
 
-        bad_session_id = "my-bad-session"
-        good_session_id = auth_data.get("SessionId")
-        api = NuHeat(None, None, session_id=bad_session_id)
-        serial_number = response_data.get("SerialNumber")
-
-        thermostat = NuHeatThermostat(api, serial_number)
         thermostat.get_data()
         self.assertTrue(isinstance(thermostat, NuHeatThermostat))
 
@@ -218,7 +223,7 @@ class TestThermostat(NuTestCase):
         unauthorized_attempt = api_calls[1]
         params = {"sessionid": bad_session_id, "serialnumber": serial_number}
         request_url = "{}?{}".format(
-            util.get_thermostat_url(),
+            thermostat._url,
             urlencode(params),
         )
         self.assertEqual(unauthorized_attempt.request.method, "GET")
@@ -229,13 +234,13 @@ class TestThermostat(NuTestCase):
         self.assertEqual(auth_call.request.method, "POST")
         self.assertUrlsEqual(
             auth_call.request.url,
-            util.get_auth_url()
+            api._auth_url,
         )
 
         second_attempt = api_calls[3]
         params["sessionid"] = good_session_id
         request_url = "{}?{}".format(
-            util.get_thermostat_url(),
+            thermostat._url,
             urlencode(params),
         )
         self.assertEqual(second_attempt.request.method, "GET")
@@ -392,16 +397,17 @@ class TestThermostat(NuTestCase):
     def test_next_schedule_event(self):
         # Use thermostat.json to load a schedule into thermostat
         response_data = load_fixture("thermostat.json")
+
+        api = NuHeat(None, None, session_id="my-session")
         responses.add(
             responses.GET,
-            util.get_thermostat_url(),
+            NuHeatThermostat.get_url(api._api_url),
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
-        api = NuHeat(None, None, session_id="my-session")
-        serial_number = response_data.get("SerialNumber")
 
+        serial_number = response_data.get("SerialNumber")
         thermostat = NuHeatThermostat(api, serial_number)
         thermostat.get_data()
 
@@ -477,17 +483,17 @@ class TestThermostat(NuTestCase):
     @patch("nuheat.NuHeatThermostat.set_data")
     def test_set_target_temperature_temporary_hold_time(self, set_data):
         response_data = load_fixture("thermostat.json")
-        responses.add(
-            responses.GET,
-            util.get_thermostat_url(),
-            status=200,
-            body=json.dumps(response_data),
-            content_type="application/json"
-        )
         api = NuHeat(None, None, session_id="my-session")
         serial_number = response_data.get("SerialNumber")
 
         with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
+            responses.add(
+                responses.GET,
+                NuHeatThermostat.get_url(api._api_url),
+                status=200,
+                body=json.dumps(response_data),
+                content_type="application/json"
+            )
             thermostat = NuHeatThermostat(api, serial_number)
             thermostat.get_data()
 
@@ -505,25 +511,27 @@ class TestThermostat(NuTestCase):
     @responses.activate
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_set_data(self, _):
+        api = NuHeat(None, None, session_id="my-session")
+
         responses.add(
             responses.POST,
-            util.get_thermostat_url(),
+            NuHeatThermostat.get_url(api._api_url),
             status=200,
             content_type="application/json"
         )
 
-        api = NuHeat(None, None, session_id="my-session")
         serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
         params = {
             "sessionid": api._session_id,
             "serialnumber": serial_number
         }
         request_url = "{}?{}".format(
-            util.get_thermostat_url(),
+            thermostat._url,
             urlencode(params),
         )
         post_data = {"test": "data"}
-        thermostat = NuHeatThermostat(api, serial_number)
         thermostat.set_data(post_data)
 
         api_call = responses.calls[0]
