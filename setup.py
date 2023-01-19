@@ -6,14 +6,14 @@ with open('README.md', 'r') as fh:
 setup(
   name='nuheat',
   packages=['nuheat'],
-  version='1.0.0',
+  version='1.0.1',
   description='A Python library that allows control of connected NuHeat Signature radiant floor thermostats.',
   long_description=long_description,
   long_description_content_type="text/markdown",
   author='Derek Brooks',
   author_email='derek@broox.com',
   url='https://github.com/broox/python-nuheat',
-  download_url='https://github.com/broox/python-nuheat/archive/1.0.0.tar.gz',
+  download_url='https://github.com/broox/python-nuheat/archive/1.0.1.tar.gz',
   license='MIT',
   keywords=['nuheat', 'thermostat', 'home automation', 'python'],
   classifiers=[
@@ -30,7 +30,7 @@ setup(
       'Topic :: Home Automation',
   ],
   install_requires=[
-    'requests==2.28.1',
+    'requests>=2.28.1',
   ],
   extras_require={
     'dev': [
