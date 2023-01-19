@@ -9,7 +9,7 @@
 
 A Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
 
-This also supports the **Mapei MapeHeat** line of smart thermostats.
+This also supports the **Mapei MapeHeat** and **Emerson Warm Tiles** line of smart thermostats.
 
 * This uses the web-based NuHeat API, so it requires an external internet connection
 * The API in use is not an officially published API, so it could change without notice
@@ -30,7 +30,7 @@ from nuheat import NuHeat
 api = NuHeat("email@example.com", "your-secure-password")
 api.authenticate()
 
-# Initialize an API session for a specific brand
+# Initialize an API session for a specific brand (Current choices are NUHEAT, MAPEHEAT and WARMTILES)
 api = NuHeat("email@example.com", "your-secure-password", brand="MAPEHEAT")
 api.authenticate()
 
