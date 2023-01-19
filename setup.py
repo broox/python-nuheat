@@ -37,6 +37,7 @@ setup(
       'coveralls==3.3.1',
       'coverage==6.5.0',
       'mock==4.0.3',
+      'parameterized==0.8.1',
       'pytest==7.2.0',
       'pytest-cov==4.0.0',
       'responses==0.22.0',

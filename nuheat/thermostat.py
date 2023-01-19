@@ -40,16 +40,9 @@ class NuHeatThermostat(object):
             self.target_celsius
         )
 
-    @classmethod
-    def get_url(cls, api_url):
-        """
-        A helper method to solve a circular dependency when testing
-        """
-        return f"{api_url}/thermostat"
-
     @property
     def _url(self):
-        return self.get_url(self._session._api_url)
+        return f"{self._session._api_url}/thermostat"
 
     @property
     def fahrenheit(self):
