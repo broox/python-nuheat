@@ -19,7 +19,7 @@ class TestNuHeat(NuTestCase):
         ("MAPEHEAT", "mymapeheat.com"),
     ])
     def test_brands(self, brand, hostname):
-        api = NuHeat("test@example.com", "secure-password", session_id=None, brand=brand)
+        api = NuHeat("test@example.com", "secure-password", brand=brand)
         self.assertEqual(api._hostname, hostname)
         self.assertEqual(api._api_url, f"https://{hostname}/api")
         self.assertEqual(api._auth_url, f"https://{hostname}/api/authenticate/user")
