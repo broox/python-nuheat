@@ -17,6 +17,7 @@ class TestNuHeat(NuTestCase):
         ("NUHEAT", "mynuheat.com"),
         ("BAD-BRAND", "mynuheat.com"),
         ("MAPEHEAT", "mymapeheat.com"),
+        ("WARMTILES", "warmtiles.mythermostat.info"),
     ])
     def test_brands(self, brand, hostname):
         api = NuHeat("test@example.com", "secure-password", brand=brand)
