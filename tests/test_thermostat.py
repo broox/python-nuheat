@@ -30,7 +30,7 @@ class TestThermostat(NuTestCase):
     ])
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_brand_urls(self, brand, hostname, _):
-        api = NuHeat(None, None, session_id=None, brand=brand)
+        api = NuHeat(None, None, brand=brand)
         serial_number = "serial-123"
         thermostat = NuHeatThermostat(api, serial_number)
         self.assertEqual(thermostat._url, f"https://{hostname}/api/thermostat")
