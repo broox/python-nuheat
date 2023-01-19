@@ -3,9 +3,10 @@ import responses
 
 from datetime import datetime, timezone, timedelta
 from mock import patch
+from parameterized import parameterized
 from urllib.parse import urlencode
 
-from nuheat import NuHeat, NuHeatThermostat, config, util
+from nuheat import NuHeat, NuHeatThermostat, config
 from . import NuTestCase, load_fixture
 
 
@@ -20,6 +21,19 @@ class TestThermostat(NuTestCase):
         thermostat = NuHeatThermostat(api, serial_number)
         self.assertEqual(thermostat.serial_number, serial_number)
         self.assertEqual(thermostat._session, api)
+
+    @parameterized.expand([
+        (None, "mynuheat.com"),
+        ("NUHEAT", "mynuheat.com"),
+        ("BAD-BRAND", "mynuheat.com"),
+        ("MAPEHEAT", "mymapeheat.com"),
+    ])
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_brand_urls(self, brand, hostname, _):
+        api = NuHeat(None, None, session_id=None, brand=brand)
+        serial_number = "serial-123"
+        thermostat = NuHeatThermostat(api, serial_number)
+        self.assertEqual(thermostat._url, f"https://{hostname}/api/thermostat")
 
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_repr_without_data(self, _):
@@ -129,7 +143,7 @@ class TestThermostat(NuTestCase):
 
         responses.add(
             responses.GET,
-            NuHeatThermostat.get_url(api._api_url),
+            f"{api._api_url}/thermostat",
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -180,7 +194,7 @@ class TestThermostat(NuTestCase):
         api = NuHeat(None, None, session_id=bad_session_id)
         responses.add(
             responses.GET,
-            NuHeatThermostat.get_url(api._api_url),
+            f"{api._api_url}/thermostat",
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -401,7 +415,7 @@ class TestThermostat(NuTestCase):
         api = NuHeat(None, None, session_id="my-session")
         responses.add(
             responses.GET,
-            NuHeatThermostat.get_url(api._api_url),
+            f"{api._api_url}/thermostat",
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
@@ -489,7 +503,7 @@ class TestThermostat(NuTestCase):
         with patch("nuheat.thermostat.datetime", wraps=datetime) as mock_dt:
             responses.add(
                 responses.GET,
-                NuHeatThermostat.get_url(api._api_url),
+                f"{api._api_url}/thermostat",
                 status=200,
                 body=json.dumps(response_data),
                 content_type="application/json"
@@ -515,7 +529,7 @@ class TestThermostat(NuTestCase):
 
         responses.add(
             responses.POST,
-            NuHeatThermostat.get_url(api._api_url),
+            f"{api._api_url}/thermostat",
             status=200,
             content_type="application/json"
         )

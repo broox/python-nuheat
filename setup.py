@@ -39,6 +39,7 @@ setup(
       'mock==4.0.3',
       'pytest==7.2.0',
       'pytest-cov==4.0.0',
+      'parameterized==0.8.1',
       'responses==0.22.0',
     ]
   },

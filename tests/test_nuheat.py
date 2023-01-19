@@ -2,6 +2,7 @@ import json
 import responses
 
 from mock import patch
+from parameterized import parameterized
 from urllib.parse import urlencode
 
 from nuheat import NuHeat, NuHeatThermostat
@@ -10,6 +11,18 @@ from . import NuTestCase, load_fixture
 
 class TestNuHeat(NuTestCase):
     # pylint: disable=protected-access
+
+    @parameterized.expand([
+        (None, "mynuheat.com"),
+        ("NUHEAT", "mynuheat.com"),
+        ("BAD-BRAND", "mynuheat.com"),
+        ("MAPEHEAT", "mymapeheat.com"),
+    ])
+    def test_brands(self, brand, hostname):
+        api = NuHeat("test@example.com", "secure-password", session_id=None, brand=brand)
+        self.assertEqual(api._hostname, hostname)
+        self.assertEqual(api._api_url, f"https://{hostname}/api")
+        self.assertEqual(api._auth_url, f"https://{hostname}/api/authenticate/user")
 
     def test_init_with_session(self):
         existing_session_id = "passed-session"
