@@ -1,9 +1,11 @@
 NUHEAT = "NUHEAT"
 MAPEHEAT = "MAPEHEAT"
-BRANDS = (NUHEAT, MAPEHEAT)
+WARMTILES = "WARMTITLES"
+BRANDS = (NUHEAT, MAPEHEAT, WARMTILES)
 HOSTNAMES = {
     NUHEAT: "mynuheat.com",
     MAPEHEAT: "mymapeheat.com",
+    WARMTILES: "warmtiles.mythermostat.info",
 }
 
 # NuHeat Schedule Modes
