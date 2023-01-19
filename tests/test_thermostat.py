@@ -27,6 +27,7 @@ class TestThermostat(NuTestCase):
         ("NUHEAT", "mynuheat.com"),
         ("BAD-BRAND", "mynuheat.com"),
         ("MAPEHEAT", "mymapeheat.com"),
+        ("WARMTILES", "warmtiles.mythermostat.info"),
     ])
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_brand_urls(self, brand, hostname, _):
