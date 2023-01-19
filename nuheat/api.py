@@ -1,6 +1,6 @@
 import logging
 import requests
-import nuheat.config as config
+from nuheat import config
 from nuheat.thermostat import NuHeatThermostat
 
 _LOGGER = logging.getLogger(__name__)
@@ -9,20 +9,44 @@ _LOGGER.setLevel(logging.DEBUG)
 
 class NuHeat(object):
 
-    def __init__(self, username, password, session_id=None):
+    def __init__(self, username, password, session_id=None, brand=config.NUHEAT):
         """
         Initialize a NuHeat API session
 
         :param username: NuHeat username
         :param username: NuHeat password
         :param session_id: A Session ID token to re-use to avoid re-authenticating
+        :param brand: Manages which API is used, can be NUHEAT or MAPEHEAT
         """
         self.username = username
         self.password = password
         self._session_id = session_id
+        self._brand = brand if brand in config.BRANDS else config.BRANDS[0]
 
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
+
+    @property
+    def _hostname(self):
+        return config.HOSTNAMES.get(self._brand)
+
+    @property
+    def _api_url(self):
+        return f"https://{self._hostname}/api"
+
+    @property
+    def _auth_url(self):
+        return f"{self._api_url}/authenticate/user"
+
+    @property
+    def _request_headers(self):
+        return {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "HOST": self._hostname,
+            "DNT": "1",
+            "Origin": self._api_url,
+        }
 
     def authenticate(self):
         """
@@ -38,7 +62,11 @@ class NuHeat(object):
             "Password": self.password,
             "application": "0"
         }
-        data = self.request(config.AUTH_URL, method="POST", data=post_data)
+        data = self.request(
+            url=self._auth_url,
+            method="POST",
+            data=post_data,
+        )
         session_id = data.get("SessionId")
         if not session_id:
             raise Exception("Authentication error")
@@ -63,7 +91,7 @@ class NuHeat(object):
         :param params: Querystring parameters
         :param retry: Attempt to re-authenticate and retry request if necessary
         """
-        headers = config.REQUEST_HEADERS
+        headers = self._request_headers
 
         if params and self._session_id:
             params['sessionid'] = self._session_id

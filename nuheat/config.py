@@ -1,14 +1,9 @@
-API_URL = "https://www.mynuheat.com/api"
-
-AUTH_URL = API_URL + "/authenticate/user"
-THERMOSTAT_URL = API_URL + "/thermostat"
-
-REQUEST_HEADERS = {
-    "Content-Type": "application/x-www-form-urlencoded",
-    "Accept": "application/json",
-    "Host": "mynuheat.com",
-    "DNT": "1",
-    "Origin": "https://mynuheat.com/api"
+NUHEAT = "NUHEAT"
+MAPEHEAT = "MAPEHEAT"
+BRANDS = (NUHEAT, MAPEHEAT)
+HOSTNAMES = {
+    NUHEAT: "mynuheat.com",
+    MAPEHEAT: "mymapeheat.com",
 }
 
 # NuHeat Schedule Modes

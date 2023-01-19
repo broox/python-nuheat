@@ -4,7 +4,7 @@ import responses
 from mock import patch
 from urllib.parse import urlencode
 
-from nuheat import NuHeat, NuHeatThermostat, config
+from nuheat import NuHeat, NuHeatThermostat
 from . import NuTestCase, load_fixture
 
 
@@ -24,32 +24,34 @@ class TestNuHeat(NuTestCase):
 
     @responses.activate
     def test_successful_authentication(self):
+        api = NuHeat("test@example.com", "secure-password")
+
         response_data = load_fixture("auth_success.json")
         responses.add(
             responses.POST,
-            config.AUTH_URL,
+            api._auth_url,
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
 
-        api = NuHeat("test@example.com", "secure-password")
         self.assertIsNone(api._session_id)
         api.authenticate()
         self.assertEqual(api._session_id, response_data.get("SessionId"))
 
     @responses.activate
     def test_authentication_error(self):
+        api = NuHeat("test@example.com", "secure-password")
+
         response_data = load_fixture("auth_error.json")
         responses.add(
             responses.POST,
-            config.AUTH_URL,
+            api._auth_url,
             status=200,
             body=json.dumps(response_data),
             content_type="application/json"
         )
 
-        api = NuHeat("test@example.com", "secure-password")
         with self.assertRaises(Exception) as _:
             api.authenticate()
             self.assertIsNone(api._session_id)
@@ -81,8 +83,14 @@ class TestNuHeat(NuTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         request_headers = response.request.headers
-        self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
-        self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
+        self.assertEqual(
+            request_headers["Origin"],
+            api._request_headers["Origin"],
+        )
+        self.assertEqual(
+            request_headers["Content-Type"],
+            api._request_headers["Content-Type"],
+        )
 
     @responses.activate
     def test_post_request(self):
@@ -102,5 +110,11 @@ class TestNuHeat(NuTestCase):
         self.assertUrlsEqual(response.request.url, "{}?{}".format(url, urlencode(params)))
         self.assertEqual(response.request.body, urlencode(data))
         request_headers = response.request.headers
-        self.assertEqual(request_headers["Origin"], config.REQUEST_HEADERS["Origin"])
-        self.assertEqual(request_headers["Content-Type"], config.REQUEST_HEADERS["Content-Type"])
+        self.assertEqual(
+            request_headers["Origin"],
+            api._request_headers["Origin"],
+        )
+        self.assertEqual(
+            request_headers["Content-Type"],
+            api._request_headers["Content-Type"],
+        )
