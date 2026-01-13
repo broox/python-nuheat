@@ -1,0 +1,21 @@
+{
+    "MondayIsFirstDay": false,
+    "EnergyUsage": [
+        {
+            "Usage": [
+                {"Minutes": 13780, "EnergyKWattHour": 0},
+                {"Minutes": 15400, "EnergyKWattHour": 0},
+                {"Minutes": 10348, "EnergyKWattHour": 0},
+                {"Minutes": 9106, "EnergyKWattHour": 0},
+                {"Minutes": 6233, "EnergyKWattHour": 0},
+                {"Minutes": 7871, "EnergyKWattHour": 0},
+                {"Minutes": 9350, "EnergyKWattHour": 0},
+                {"Minutes": 14239, "EnergyKWattHour": 0},
+                {"Minutes": 9981, "EnergyKWattHour": 0},
+                {"Minutes": 15947, "EnergyKWattHour": 0},
+                {"Minutes": 14183, "EnergyKWattHour": 0},
+                {"Minutes": 14907, "EnergyKWattHour": 0}
+            ]
+        }
+    ]
+}

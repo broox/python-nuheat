@@ -1,4 +1,6 @@
-from datetime import datetime, timezone, timedelta, time
+from dataclasses import dataclass
+from datetime import datetime, timezone, timedelta, time, date
+from typing import Optional
 import nuheat.config as config
 from nuheat.util import (
     celsius_to_nuheat,
@@ -6,6 +8,64 @@ from nuheat.util import (
     nuheat_to_celsius,
     nuheat_to_fahrenheit
 )
+
+
+@dataclass
+class HourlyUsage:
+    """Hourly energy usage data."""
+
+    hour: int
+    heating_minutes: int
+    energy_kwh: Optional[float]
+
+
+@dataclass
+class DailyUsage:
+    """Daily energy usage data."""
+
+    date: date
+    heating_minutes: int
+    energy_kwh: Optional[float]
+
+
+@dataclass
+class EnergyUsage:
+    """Energy usage data from the NuHeat API (daily view with hourly breakdown)."""
+
+    date: date
+    heating_minutes: int
+    energy_kwh: Optional[float]
+    hourly: list
+
+
+@dataclass
+class WeeklyUsage:
+    """Weekly energy usage data from the NuHeat API (weekly view with daily breakdown)."""
+
+    week_start: date
+    heating_minutes: int
+    energy_kwh: Optional[float]
+    daily: list
+
+
+@dataclass
+class MonthlyUsage:
+    """Monthly energy usage data."""
+
+    year: int
+    month: int
+    heating_minutes: int
+    energy_kwh: Optional[float]
+
+
+@dataclass
+class YearlyUsage:
+    """Yearly energy usage data from the NuHeat API (yearly view with monthly breakdown)."""
+
+    year: int
+    heating_minutes: int
+    energy_kwh: Optional[float]
+    monthly: list
 
 
 class NuHeatThermostat(object):
@@ -350,4 +410,218 @@ class NuHeatThermostat(object):
             method="POST",
             data=post_data,
             params=params,
+        )
+
+    def get_energy_usage(self, for_date: Optional[date] = None) -> EnergyUsage:
+        """
+        Fetch energy usage data for a specific date.
+
+        :param for_date: The date to fetch energy usage for. Defaults to today.
+        :return: EnergyUsage object containing heating minutes and energy in kWh
+        """
+        if for_date is None:
+            for_date = date.today()
+
+        date_str = for_date.strftime("%Y-%m-%d")
+
+        params = {
+            "serialnumber": self.serial_number,
+            "view": "day",
+            "date": date_str,
+            "history": "0",
+            "calc": "yes",
+            "weekstart": "sunday",
+        }
+
+        data = self._session.request(
+            url=f"{self._session._api_url}/energyusage",
+            params=params,
+        )
+
+        total_minutes = 0
+        total_kwh = 0.0
+        has_kwh = False
+        hourly_data = []
+
+        # Response format: {"EnergyUsage": [{"Usage": [{"Minutes": x, "EnergyKWattHour": y}, ...]}]}
+        energy_usage = data.get("EnergyUsage", [])
+        for day_data in energy_usage:
+            usage_entries = day_data.get("Usage", [])
+            for hour, entry in enumerate(usage_entries):
+                minutes = entry.get("Minutes", 0)
+                kwh = entry.get("EnergyKWattHour", 0)
+
+                total_minutes += minutes
+                if kwh > 0:
+                    has_kwh = True
+                    total_kwh += kwh
+
+                hourly_data.append(HourlyUsage(
+                    hour=hour,
+                    heating_minutes=minutes,
+                    energy_kwh=kwh if kwh > 0 else None,
+                ))
+
+        # If we have heating minutes but no kWh data, return None (user hasn't
+        # configured watt density in NuHeat app). If heating minutes is 0,
+        # return 0.0 since zero heating = zero energy.
+        if total_minutes == 0:
+            final_kwh: Optional[float] = 0.0
+        elif has_kwh:
+            final_kwh = total_kwh
+        else:
+            final_kwh = None
+
+        return EnergyUsage(
+            date=for_date,
+            heating_minutes=total_minutes,
+            energy_kwh=final_kwh,
+            hourly=hourly_data,
+        )
+
+    def get_weekly_usage(self, for_date: Optional[date] = None) -> WeeklyUsage:
+        """
+        Fetch weekly energy usage data with daily breakdown.
+
+        :param for_date: A date within the week to fetch. Defaults to today.
+        :return: WeeklyUsage object containing daily breakdown
+        """
+        if for_date is None:
+            for_date = date.today()
+
+        date_str = for_date.strftime("%Y-%m-%d")
+
+        params = {
+            "serialnumber": self.serial_number,
+            "view": "week",
+            "date": date_str,
+            "history": "0",
+            "calc": "yes",
+            "weekstart": "sunday",
+        }
+
+        data = self._session.request(
+            url=f"{self._session._api_url}/energyusage",
+            params=params,
+        )
+
+        total_minutes = 0
+        total_kwh = 0.0
+        has_kwh = False
+        daily_data = []
+
+        # Determine week start based on API response
+        monday_first = data.get("MondayIsFirstDay", False)
+
+        # Calculate the start of the week containing for_date
+        weekday = for_date.weekday()  # Monday=0, Sunday=6
+        if monday_first:
+            days_since_start = weekday
+        else:
+            # Sunday=0 for week start
+            days_since_start = (weekday + 1) % 7
+        week_start = for_date - timedelta(days=days_since_start)
+
+        # Response format: {"EnergyUsage": [{"Usage": [{"Minutes": x, "EnergyKWattHour": y}, ...]}]}
+        energy_usage = data.get("EnergyUsage", [])
+        for day_data in energy_usage:
+            usage_entries = day_data.get("Usage", [])
+            for day_offset, entry in enumerate(usage_entries):
+                minutes = entry.get("Minutes", 0)
+                kwh = entry.get("EnergyKWattHour", 0)
+
+                total_minutes += minutes
+                if kwh > 0:
+                    has_kwh = True
+                    total_kwh += kwh
+
+                entry_date = week_start + timedelta(days=day_offset)
+                daily_data.append(DailyUsage(
+                    date=entry_date,
+                    heating_minutes=minutes,
+                    energy_kwh=kwh if kwh > 0 else None,
+                ))
+
+        # If we have heating minutes but no kWh data, return None (user hasn't
+        # configured watt density in NuHeat app). If heating minutes is 0,
+        # return 0.0 since zero heating = zero energy.
+        if total_minutes == 0:
+            final_kwh: Optional[float] = 0.0
+        elif has_kwh:
+            final_kwh = total_kwh
+        else:
+            final_kwh = None
+
+        return WeeklyUsage(
+            week_start=week_start,
+            heating_minutes=total_minutes,
+            energy_kwh=final_kwh,
+            daily=daily_data,
+        )
+
+    def get_yearly_usage(self, year: Optional[int] = None) -> YearlyUsage:
+        """
+        Fetch yearly energy usage data with monthly breakdown.
+
+        :param year: The year to fetch. Defaults to current year.
+        :return: YearlyUsage object containing monthly breakdown
+        """
+        if year is None:
+            year = date.today().year
+
+        params = {
+            "serialnumber": self.serial_number,
+            "view": "year",
+            "date": str(year),
+            "history": "0",
+            "calc": "yes",
+            "weekstart": "sunday",
+        }
+
+        data = self._session.request(
+            url=f"{self._session._api_url}/energyusage",
+            params=params,
+        )
+
+        total_minutes = 0
+        total_kwh = 0.0
+        has_kwh = False
+        monthly_data = []
+
+        # Response format: {"EnergyUsage": [{"Usage": [{"Minutes": x, "EnergyKWattHour": y}, ...]}]}
+        # 12 entries, one per month (January=0 to December=11)
+        energy_usage = data.get("EnergyUsage", [])
+        for year_data in energy_usage:
+            usage_entries = year_data.get("Usage", [])
+            for month_index, entry in enumerate(usage_entries):
+                minutes = entry.get("Minutes", 0)
+                kwh = entry.get("EnergyKWattHour", 0)
+
+                total_minutes += minutes
+                if kwh > 0:
+                    has_kwh = True
+                    total_kwh += kwh
+
+                monthly_data.append(MonthlyUsage(
+                    year=year,
+                    month=month_index + 1,  # 1-12
+                    heating_minutes=minutes,
+                    energy_kwh=kwh if kwh > 0 else None,
+                ))
+
+        # If we have heating minutes but no kWh data, return None (user hasn't
+        # configured watt density in NuHeat app). If heating minutes is 0,
+        # return 0.0 since zero heating = zero energy.
+        if total_minutes == 0:
+            final_kwh: Optional[float] = 0.0
+        elif has_kwh:
+            final_kwh = total_kwh
+        else:
+            final_kwh = None
+
+        return YearlyUsage(
+            year=year,
+            heating_minutes=total_minutes,
+            energy_kwh=final_kwh,
+            monthly=monthly_data,
         )

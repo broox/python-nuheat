@@ -1,0 +1,16 @@
+{
+    "MondayIsFirstDay": false,
+    "EnergyUsage": [
+        {
+            "Usage": [
+                {"Minutes": 0, "EnergyKWattHour": 0},
+                {"Minutes": 0, "EnergyKWattHour": 0},
+                {"Minutes": 0, "EnergyKWattHour": 0},
+                {"Minutes": 0, "EnergyKWattHour": 0},
+                {"Minutes": 0, "EnergyKWattHour": 0},
+                {"Minutes": 261, "EnergyKWattHour": 0},
+                {"Minutes": 576, "EnergyKWattHour": 0}
+            ]
+        }
+    ]
+}

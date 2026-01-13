@@ -1,12 +1,12 @@
 import json
 import responses
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 from mock import patch
 from parameterized import parameterized
 from urllib.parse import urlencode
 
-from nuheat import NuHeat, NuHeatThermostat, config
+from nuheat import NuHeat, NuHeatThermostat, EnergyUsage, HourlyUsage, DailyUsage, WeeklyUsage, MonthlyUsage, YearlyUsage, config
 from . import NuTestCase, load_fixture
 
 
@@ -552,3 +552,190 @@ class TestThermostat(NuTestCase):
         self.assertEqual(api_call.request.method, "POST")
         self.assertUrlsEqual(api_call.request.url, request_url)
         self.assertEqual(api_call.request.body, urlencode(post_data))
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_get_energy_usage(self, _):
+        response_data = load_fixture("energy_usage.json")
+        api = NuHeat(None, None, session_id="my-session")
+
+        responses.add(
+            responses.GET,
+            f"{api._api_url}/energyusage",
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+
+        serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
+        test_date = date(2024, 1, 15)
+        energy = thermostat.get_energy_usage(test_date)
+
+        self.assertIsInstance(energy, EnergyUsage)
+        self.assertEqual(energy.date, test_date)
+        self.assertEqual(energy.heating_minutes, 55)  # 15 + 30 + 10
+        self.assertAlmostEqual(energy.energy_kwh, 1.1, places=2)  # 0.3 + 0.6 + 0.2
+
+        # Verify hourly data
+        self.assertEqual(len(energy.hourly), 3)
+        self.assertIsInstance(energy.hourly[0], HourlyUsage)
+        self.assertEqual(energy.hourly[0].hour, 0)
+        self.assertEqual(energy.hourly[0].heating_minutes, 15)
+        self.assertAlmostEqual(energy.hourly[0].energy_kwh, 0.3, places=2)
+        self.assertEqual(energy.hourly[1].hour, 1)
+        self.assertEqual(energy.hourly[1].heating_minutes, 30)
+        self.assertEqual(energy.hourly[2].hour, 2)
+        self.assertEqual(energy.hourly[2].heating_minutes, 10)
+
+        api_call = responses.calls[0]
+        self.assertEqual(api_call.request.method, "GET")
+        self.assertIn("serialnumber=my-thermostat", api_call.request.url)
+        self.assertIn("date=2024-01-15", api_call.request.url)
+        self.assertIn("view=day", api_call.request.url)
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_get_energy_usage_no_kwh(self, _):
+        response_data = load_fixture("energy_usage_no_kwh.json")
+        api = NuHeat(None, None, session_id="my-session")
+
+        responses.add(
+            responses.GET,
+            f"{api._api_url}/energyusage",
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+
+        serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
+        test_date = date(2024, 1, 15)
+        energy = thermostat.get_energy_usage(test_date)
+
+        self.assertIsInstance(energy, EnergyUsage)
+        self.assertEqual(energy.date, test_date)
+        self.assertEqual(energy.heating_minutes, 55)  # 15 + 30 + 10
+        self.assertIsNone(energy.energy_kwh)  # No kWh data available
+
+        # Verify hourly data has no kWh
+        self.assertEqual(len(energy.hourly), 3)
+        for hourly in energy.hourly:
+            self.assertIsNone(hourly.energy_kwh)
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_get_energy_usage_default_date(self, _):
+        response_data = load_fixture("energy_usage.json")
+        api = NuHeat(None, None, session_id="my-session")
+
+        responses.add(
+            responses.GET,
+            f"{api._api_url}/energyusage",
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+
+        serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
+        energy = thermostat.get_energy_usage()  # No date specified
+
+        self.assertIsInstance(energy, EnergyUsage)
+        self.assertEqual(energy.date, date.today())
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_get_weekly_usage(self, _):
+        response_data = load_fixture("weekly_usage.json")
+        api = NuHeat(None, None, session_id="my-session")
+
+        responses.add(
+            responses.GET,
+            f"{api._api_url}/energyusage",
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+
+        serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
+        # Saturday Jan 11, 2025 - week starts Sunday Jan 5
+        test_date = date(2025, 1, 11)
+        weekly = thermostat.get_weekly_usage(test_date)
+
+        self.assertIsInstance(weekly, WeeklyUsage)
+        self.assertEqual(weekly.week_start, date(2025, 1, 5))  # Sunday
+        self.assertEqual(weekly.heating_minutes, 837)  # 261 + 576
+        self.assertIsNone(weekly.energy_kwh)  # No kWh data
+
+        # Verify daily data
+        self.assertEqual(len(weekly.daily), 7)
+        self.assertIsInstance(weekly.daily[0], DailyUsage)
+
+        # Sunday (index 0) = Jan 5
+        self.assertEqual(weekly.daily[0].date, date(2025, 1, 5))
+        self.assertEqual(weekly.daily[0].heating_minutes, 0)
+
+        # Friday (index 5) = Jan 10
+        self.assertEqual(weekly.daily[5].date, date(2025, 1, 10))
+        self.assertEqual(weekly.daily[5].heating_minutes, 261)
+
+        # Saturday (index 6) = Jan 11
+        self.assertEqual(weekly.daily[6].date, date(2025, 1, 11))
+        self.assertEqual(weekly.daily[6].heating_minutes, 576)
+
+        api_call = responses.calls[0]
+        self.assertEqual(api_call.request.method, "GET")
+        self.assertIn("view=week", api_call.request.url)
+
+    @responses.activate
+    @patch("nuheat.NuHeatThermostat.get_data")
+    def test_get_yearly_usage(self, _):
+        response_data = load_fixture("yearly_usage.json")
+        api = NuHeat(None, None, session_id="my-session")
+
+        responses.add(
+            responses.GET,
+            f"{api._api_url}/energyusage",
+            status=200,
+            body=json.dumps(response_data),
+            content_type="application/json"
+        )
+
+        serial_number = "my-thermostat"
+        thermostat = NuHeatThermostat(api, serial_number)
+
+        yearly = thermostat.get_yearly_usage(2024)
+
+        self.assertIsInstance(yearly, YearlyUsage)
+        self.assertEqual(yearly.year, 2024)
+        # Sum: 13780+15400+10348+9106+6233+7871+9350+14239+9981+15947+14183+14907 = 141345
+        self.assertEqual(yearly.heating_minutes, 141345)
+        self.assertIsNone(yearly.energy_kwh)  # No kWh data
+
+        # Verify monthly data
+        self.assertEqual(len(yearly.monthly), 12)
+        self.assertIsInstance(yearly.monthly[0], MonthlyUsage)
+
+        # January (index 0)
+        self.assertEqual(yearly.monthly[0].year, 2024)
+        self.assertEqual(yearly.monthly[0].month, 1)
+        self.assertEqual(yearly.monthly[0].heating_minutes, 13780)
+
+        # February (index 1)
+        self.assertEqual(yearly.monthly[1].month, 2)
+        self.assertEqual(yearly.monthly[1].heating_minutes, 15400)
+
+        # December (index 11)
+        self.assertEqual(yearly.monthly[11].month, 12)
+        self.assertEqual(yearly.monthly[11].heating_minutes, 14907)
+
+        api_call = responses.calls[0]
+        self.assertEqual(api_call.request.method, "GET")
+        self.assertIn("view=year", api_call.request.url)
+        self.assertIn("date=2024", api_call.request.url)

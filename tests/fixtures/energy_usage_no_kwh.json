@@ -1,0 +1,11 @@
+{
+  "EnergyUsage": [
+    {
+      "Usage": [
+        {"Minutes": 15, "EnergyKWattHour": 0},
+        {"Minutes": 30, "EnergyKWattHour": 0},
+        {"Minutes": 10, "EnergyKWattHour": 0}
+      ]
+    }
+  ]
+}
