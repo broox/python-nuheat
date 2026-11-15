@@ -159,7 +159,8 @@ class NuHeatThermostat(object):
         self.target_temperature = data.get("SetPointTemp")
         self._schedule_mode = data.get("ScheduleMode")
         hold_time_str = data.get("HoldSetPointDateTime")
-        self._hold_time = datetime.fromisoformat(hold_time_str)
+        if hold_time_str:
+            self._hold_time = datetime.fromisoformat(hold_time_str)
 
     @property
     def schedule_mode(self):

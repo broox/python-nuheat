@@ -2,7 +2,7 @@ import json
 import responses
 
 from datetime import datetime, timezone, timedelta
-from mock import patch
+from unittest.mock import patch
 from parameterized import parameterized
 from urllib.parse import urlencode
 
@@ -135,9 +135,13 @@ class TestThermostat(NuTestCase):
         thermostat.target_celsius = 26
         set_target_celsius.assert_called_with(26)
 
+    @parameterized.expand([
+        ("thermostat.json",),
+        ("warmtiles_thermostat.json",),  # WarmTiles: no ScheduleMode / HoldSetPointDateTime
+    ])
     @responses.activate
-    def test_get_data(self):
-        response_data = load_fixture("thermostat.json")
+    def test_get_data(self, fixture):
+        response_data = load_fixture(fixture)
 
         api = NuHeat(None, None, session_id="my-session")
 
@@ -181,7 +185,10 @@ class TestThermostat(NuTestCase):
         self.assertEqual(thermostat.min_temperature, response_data["MinTemp"])
         self.assertEqual(thermostat.max_temperature, response_data["MaxTemp"])
         self.assertEqual(thermostat.target_temperature, response_data["SetPointTemp"])
-        self.assertEqual(thermostat.schedule_mode, response_data["ScheduleMode"])
+
+        self.assertEqual(thermostat.schedule_mode, response_data.get("ScheduleMode"))
+        if "HoldSetPointDateTime" not in response_data:
+            self.assertIsNone(thermostat._hold_time)
 
     @responses.activate
     def test_get_data_401(self):
@@ -516,6 +523,7 @@ class TestThermostat(NuTestCase):
             mock_dt.now.return_value = datetime(1990, 11, 9, 22, 45, tzinfo=cet)
             thermostat.set_target_temperature(2222,
                                               config.SCHEDULE_TEMPORARY_HOLD)
+
             set_data.assert_called_with({
                 "SetPointTemp": 2222,
                 "ScheduleMode": config.SCHEDULE_TEMPORARY_HOLD,
