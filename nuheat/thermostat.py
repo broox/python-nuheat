@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta, time
 import nuheat.config as config
+from nuheat.exceptions import NuHeatError
 from nuheat.util import (
     celsius_to_nuheat,
     fahrenheit_to_nuheat,
@@ -181,7 +182,7 @@ class NuHeatThermostat(object):
         """
         modes = [config.SCHEDULE_RUN, config.SCHEDULE_TEMPORARY_HOLD, config.SCHEDULE_HOLD]
         if mode not in modes:
-            raise Exception("Invalid mode. Please use one of: {}".format(modes))
+            raise NuHeatError("Invalid mode. Please use one of: {}".format(modes))
 
         self.set_data({"ScheduleMode": mode})
 
@@ -205,7 +206,7 @@ class NuHeatThermostat(object):
         hold_gmt = hold.astimezone(timezone(timedelta(0), 'GMT'))
 
         if hold_gmt < datetime.now(timezone.utc):
-            raise Exception("Invalid hold_time - must be in the future.")
+            raise NuHeatError("Invalid hold_time - must be in the future.")
 
         hold_str = hold_gmt.strftime("%a, %d %b %Y %H:%M:%S %Z")
         post_data = {
@@ -306,7 +307,7 @@ class NuHeatThermostat(object):
 
         modes = [config.SCHEDULE_TEMPORARY_HOLD, config.SCHEDULE_HOLD]
         if mode not in modes:
-            raise Exception("Invalid mode. Please use one of: {}".format(modes))
+            raise NuHeatError("Invalid mode. Please use one of: {}".format(modes))
 
         post_data = {
             "SetPointTemp": temperature,

@@ -23,10 +23,10 @@ class TestThermostat(NuTestCase):
         self.assertEqual(thermostat._session, api)
 
     @parameterized.expand([
-        (None, "mynuheat.com"),
-        ("NUHEAT", "mynuheat.com"),
-        ("BAD-BRAND", "mynuheat.com"),
-        ("MAPEHEAT", "mymapeheat.com"),
+        (None, "www.mynuheat.com"),
+        ("NUHEAT", "www.mynuheat.com"),
+        ("BAD-BRAND", "www.mynuheat.com"),
+        ("MAPEHEAT", "www.mymapeheat.com"),
     ])
     @patch("nuheat.NuHeatThermostat.get_data")
     def test_brand_urls(self, brand, hostname, _):

@@ -1,27 +1,34 @@
 import logging
+import warnings
+
 import requests
+
 from nuheat import config
+from nuheat.exceptions import NuHeatAuthError, NuHeatError
 from nuheat.thermostat import NuHeatThermostat
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.DEBUG)
 
 
 class NuHeat(object):
 
-    def __init__(self, username, password, session_id=None, brand=config.NUHEAT):
+    def __init__(self, username, password, session_id=None, brand=config.NUHEAT, timeout=config.DEFAULT_TIMEOUT):
         """
         Initialize a NuHeat API session
 
         :param username: NuHeat username
-        :param username: NuHeat password
+        :param password: NuHeat password
         :param session_id: A Session ID token to re-use to avoid re-authenticating
         :param brand: Manages which API is used, can be NUHEAT or MAPEHEAT
+        :param timeout: requests timeout in seconds, either a number or a (connect, read) tuple
         """
+        warnings.warn(config.DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
         self.username = username
         self.password = password
         self._session_id = session_id
         self._brand = brand if brand in config.BRANDS else config.BRANDS[0]
+        self._timeout = timeout
+        self._http = requests.Session()
 
     def __repr__(self):
         return "<NuHeat username='{}'>".format(self.username)
@@ -69,7 +76,7 @@ class NuHeat(object):
         )
         session_id = data.get("SessionId")
         if not session_id:
-            raise Exception("Authentication error")
+            raise NuHeatAuthError("Authentication error")
 
         self._session_id = session_id
 
@@ -96,14 +103,19 @@ class NuHeat(object):
         if params and self._session_id:
             params['sessionid'] = self._session_id
 
-        if method == "GET":
-            response = requests.get(url, headers=headers, params=params)
-        elif method == "POST":
-            response = requests.post(url, headers=headers, params=params, data=data)
+        if method not in ("GET", "POST"):
+            raise NuHeatError(f"Unsupported request method: {method}")
+
+        try:
+            response = self._http.request(
+                method, url, headers=headers, params=params, data=data, timeout=self._timeout
+            )
+        except (requests.ConnectionError, requests.Timeout) as err:
+            raise NuHeatError(f"Unable to reach {url}. {config.DEPRECATION_MESSAGE}") from err
 
         # Handle expired sessions
         if response.status_code == 401 and retry:
-            _LOGGER.warning("NuHeat APIrequest unauthorized for  [401]. Try to re-authenticate.")
+            _LOGGER.warning("NuHeat API request unauthorized [401]. Attempting to re-authenticate.")
             self._session_id = None
             self.authenticate()
             return self.request(url, method=method, data=data, params=params, retry=False)
