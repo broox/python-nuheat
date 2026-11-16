@@ -3,17 +3,29 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
 [![PyPI - Version](https://img.shields.io/pypi/v/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/nuheat?style=flat-square)](https://pypi.org/project/nuheat/)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/broox/python-nuheat/Python%20package?style=flat-square)](https://github.com/broox/python-nuheat/actions?query=branch%3Amaster)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/broox/python-nuheat/test.yaml?branch=master&style=flat-square)](https://github.com/broox/python-nuheat/actions?query=branch%3Amaster)
 [![Coveralls](https://img.shields.io/coveralls/github/broox/python-nuheat?style=flat-square)](https://coveralls.io/github/broox/python-nuheat?branch=master)
-[![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/broox/python-nuheat?style=flat-square)](https://snyk.io/advisor/python/nuheat)
+
+> [!WARNING]
+> **This library no longer works and is deprecated.**
+>
+> In 2026, Chemelex (the maker of NuHeat) retired the legacy `www.mynuheat.com/api` used here, along with the old
+> Signature app and website. Signature thermostats moved to the NUHEAT Conductor app and a new OAuth2-based API,
+> so requests from this library now time out.
+>
+> - **Home Assistant users:** the core `nuheat` integration is being moved to the new API. Follow
+>   [home-assistant/core#175923](https://github.com/home-assistant/core/issues/175923) for status.
+> - **Python users:** use [`chemelex-nuheat`](https://pypi.org/project/chemelex-nuheat/), which targets the new API.
+>
+> Version 1.2.0 is the final release. It warns on use and raises a clear `NuHeatError` instead of hanging.
+> The documentation below describes the legacy API and is kept for reference only.
 
 A Python 3 library that allows control of connected [NuHeat Signature](http://www.nuheat.com/products/thermostats/signature-thermostat) radiant floor thermostats.
 
 This also supports the **Mapei MapeHeat** line of smart thermostats.
 
-* This uses the web-based NuHeat API, so it requires an external internet connection
-* The API in use is not an officially published API, so it could change without notice
-* Please contribute!
+* This uses the legacy web-based NuHeat API (now retired; see above)
+* The API in use was never an officially published API
 
 # Installation
 
@@ -98,9 +110,15 @@ hold_time = datetime.now() + timedelta(hours=4)
 thermostat.set_target_fahrenheit(69, mode=2, hold_time=hold_time)
 ```
 
-# Contributing
+# Development
 
-Pull requests are always welcome!
+This project is no longer maintained. To run the tests locally:
+
+```shell
+$ pip install -e ".[dev]"
+$ ruff check .
+$ pytest
+```
 
 ## Running locally with Docker
 
